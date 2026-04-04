@@ -28,9 +28,17 @@ export default async function SongPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href="/" className="text-violet-400 hover:text-violet-300 text-sm mb-6 inline-flex items-center gap-1 transition-colors">
-        ← Back to all songs
-      </Link>
+      <div className="flex items-center justify-between mb-6">
+        <Link href="/" className="text-violet-400 hover:text-violet-300 text-sm inline-flex items-center gap-1 transition-colors">
+          ← Back to all songs
+        </Link>
+        <Link
+          href={`/song/${id}/edit`}
+          className="text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-slate-100 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1"
+        >
+          ✏️ Edit
+        </Link>
+      </div>
 
       <div className="mt-4 bg-slate-800 border border-slate-700 rounded-2xl p-6">
         <div className="mb-6 pb-6 border-b border-slate-700">
