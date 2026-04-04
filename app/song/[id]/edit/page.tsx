@@ -42,7 +42,7 @@ export default function EditSongPage() {
           lyrics: data.lyrics,
           tags: data.tags ? data.tags.join(", ") : "",
         });
-      } else if (error || !data) {
+      } else {
         setFetchError(true);
       }
       setFetching(false);
