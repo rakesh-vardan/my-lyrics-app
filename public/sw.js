@@ -13,6 +13,8 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((response) => {
       if (response) return response;
       return fetch(event.request).then((response) => {
+        // Only cache same-origin ('basic') responses to avoid caching opaque
+        // cross-origin responses which could mask errors and waste storage.
         if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }

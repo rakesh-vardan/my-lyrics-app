@@ -15,11 +15,14 @@ export default function CopyButton({ lyrics }: CopyButtonProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
+      // Fallback for older browsers that don't support the Clipboard API.
+      // document.execCommand('copy') is deprecated but intentionally used here
+      // as a last-resort fallback when navigator.clipboard is unavailable.
       const el = document.createElement("textarea");
       el.value = lyrics;
       document.body.appendChild(el);
       el.select();
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       document.execCommand("copy");
       document.body.removeChild(el);
       setCopied(true);
