@@ -43,3 +43,7 @@ next-env.d.ts
 
 # Local environment
 .env.local
+
+# Serwist generated service worker
+public/sw.js
+public/swe-worker-*.js
