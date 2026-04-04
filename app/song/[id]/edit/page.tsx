@@ -15,6 +15,7 @@ export default function EditSongPage() {
   const [authError, setAuthError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -28,7 +29,7 @@ export default function EditSongPage() {
 
   useEffect(() => {
     async function fetchSong() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("songs")
         .select("*")
         .eq("id", id)
@@ -41,6 +42,8 @@ export default function EditSongPage() {
           lyrics: data.lyrics,
           tags: data.tags ? data.tags.join(", ") : "",
         });
+      } else if (error || !data) {
+        setFetchError(true);
       }
       setFetching(false);
     }
@@ -132,6 +135,19 @@ export default function EditSongPage() {
     return (
       <div className="max-w-2xl mx-auto text-center py-16 text-slate-400">
         Loading song...
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-16">
+        <div className="bg-red-900/30 border border-red-700 rounded-xl p-6 text-red-300">
+          ❌ Song not found or could not be loaded.{" "}
+          <Link href="/" className="text-violet-400 hover:text-violet-300 underline">
+            Return home
+          </Link>
+        </div>
       </div>
     );
   }

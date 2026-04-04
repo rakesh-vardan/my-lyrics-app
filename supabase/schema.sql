@@ -15,6 +15,8 @@ CREATE TABLE songs (
 CREATE INDEX ix_songs_all_content ON songs USING pgroonga(title_telugu, title_english, movie_name, lyrics);
 
 -- Row Level Security policies
+-- Note: access control for write operations is enforced at the application
+-- layer via admin password verification in /api/auth before any mutations.
 ALTER TABLE songs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public read access" ON songs
