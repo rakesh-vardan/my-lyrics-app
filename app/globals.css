@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+.telugu-text {
+  font-family: 'Noto Sans Telugu', 'Mandali', 'Vemana2000', system-ui, sans-serif;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
