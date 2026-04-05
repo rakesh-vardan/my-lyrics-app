@@ -45,8 +45,22 @@ export default function HomePage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // View mode: list or grid
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const { recentIds } = useRecentlyViewed();
+
+  // Persist view mode
+  useEffect(() => {
+    const stored = localStorage.getItem("lyrics-view-mode");
+    if (stored === "grid" || stored === "list") setViewMode(stored);
+  }, []);
+
+  const setView = (v: "list" | "grid") => {
+    setViewMode(v);
+    localStorage.setItem("lyrics-view-mode", v);
+  };
 
   // --- Initial load (metadata only, no lyrics) ---
   useEffect(() => {
@@ -370,9 +384,19 @@ export default function HomePage() {
 
       {/* ── States ──────────────────────────────────────── */}
       {loading && (
-        <div className="text-center py-12 text-slate-400">
-          <div className="text-4xl mb-3">🎵</div>
-          <p>Loading songs...</p>
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-slate-800 border border-slate-700 rounded-xl p-4 animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-slate-700 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 bg-slate-700 rounded w-3/4" />
+                  <div className="h-3 bg-slate-700 rounded w-1/2" />
+                  <div className="h-3 bg-slate-700 rounded w-1/3" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -417,7 +441,41 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ── Song list ───────────────────────────────────── */}
+      {/* ── Count + View toggle ─────────────────────────── */}
+      {!loading && !error && allSongs.length > 0 && (
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-slate-500">
+            {hasActiveFilters || debouncedQuery
+              ? `${results.length} of ${allSongs.length} songs`
+              : `${allSongs.length} song${allSongs.length !== 1 ? "s" : ""} in vault`}
+          </span>
+          <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-1 border border-slate-700">
+            <button
+              onClick={() => setView("list")}
+              className={`px-2 py-1 rounded text-sm transition-colors ${
+                viewMode === "list" ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"
+              }`}
+              title="List view"
+              aria-label="List view"
+            >
+              ☰
+            </button>
+            <button
+              onClick={() => setView("grid")}
+              className={`px-2 py-1 rounded text-sm transition-colors ${
+                viewMode === "grid" ? "bg-slate-700 text-slate-100" : "text-slate-400 hover:text-slate-200"
+              }`}
+              title="Grid view"
+              aria-label="Grid view"
+            >
+              ⊞
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Song list / grid ────────────────────────────── */}
+      {viewMode === "list" ? (
       <div className="space-y-3">
         {visibleResults.map((song) => (
           <div
@@ -479,14 +537,48 @@ export default function HomePage() {
         ))}
       </div>
 
+      ) : (
+        /* ── Grid view ─────────────────────────────────── */
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {visibleResults.map((song) => (
+            <div
+              key={song.id}
+              className="relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-violet-500 rounded-xl p-3 transition-all"
+            >
+              <button
+                onClick={() => toggleFavorite(song.id)}
+                className="absolute top-2 right-2 text-sm hover:scale-110 transition-transform"
+                title={isFavorite(song.id) ? "Remove from favorites" : "Add to favorites"}
+              >
+                {isFavorite(song.id) ? "❤️" : "🤍"}
+              </button>
+              <Link href={`/song/${song.id}`} className="block pr-6">
+                <p className="text-sm font-semibold text-slate-100 telugu-text line-clamp-2 leading-snug">
+                  {song.title_telugu}
+                </p>
+                {song.title_english && (
+                  <p className="text-xs text-slate-400 truncate mt-0.5">{song.title_english}</p>
+                )}
+                {song.movie_name && (
+                  <p className="text-xs text-violet-400 mt-1.5 truncate">🎬 {song.movie_name}</p>
+                )}
+                {song.genre && (
+                  <span className="inline-block mt-1.5 text-xs bg-violet-600/20 text-violet-300 px-1.5 py-0.5 rounded-full border border-violet-500/20">
+                    {song.genre}
+                  </span>
+                )}
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Infinite scroll sentinel */}
       {hasMore && <div ref={sentinelRef} className="h-10" />}
 
       {!loading && !error && results.length > 0 && (
         <p className="text-center text-slate-500 text-sm mt-6">
-          Showing {visibleResults.length} of {results.length} song{results.length !== 1 ? "s" : ""}
-          {query ? " matched" : ""}
-          {hasActiveFilters ? " (filtered)" : ""}
+          Showing {visibleResults.length} of {results.length}{query ? " matched" : ""}{hasActiveFilters ? " (filtered)" : ""}
         </p>
       )}
     </div>

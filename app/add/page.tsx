@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
 import { supabase, GENRES } from "@/lib/supabase";
 
 export default function AddSongPage() {
@@ -10,8 +12,13 @@ export default function AddSongPage() {
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+
+  // Restore session auth so users don't re-enter password every visit
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("adminAuth") === "true") setAuthenticated(true);
+    } catch {}
+  }, []);
 
   const [form, setForm] = useState({
     title_telugu: "",
@@ -32,6 +39,9 @@ export default function AddSongPage() {
     if (res.ok) {
       setAuthenticated(true);
       setAuthError("");
+      try { sessionStorage.setItem("adminAuth", "true"); } catch {}
+    } else if (res.status === 429) {
+      setAuthError("Too many attempts. Try again in 15 minutes.");
     } else {
       setAuthError("Invalid password. Please try again.");
     }
@@ -40,7 +50,6 @@ export default function AddSongPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     const tags = form.tags
       ? form.tags.split(",").map((t) => t.trim()).filter(Boolean)
@@ -60,20 +69,11 @@ export default function AddSongPage() {
     setLoading(false);
 
     if (error) {
-      setError(error.message);
+      toast.error(error.message);
     } else {
-      setSuccess(true);
-      setForm({
-        title_telugu: "",
-        title_english: "",
-        movie_name: "",
-        genre: "",
-        lyrics: "",
-        tags: "",
-      });
-      setTimeout(() => {
-        router.push("/");
-      }, 1500);
+      toast.success("Song added successfully!");
+      setForm({ title_telugu: "", title_english: "", movie_name: "", genre: "", lyrics: "", tags: "" });
+      setTimeout(() => router.push("/"), 1200);
     }
   };
 
@@ -113,6 +113,12 @@ export default function AddSongPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
+        <Link href="/" className="hover:text-violet-400 transition-colors">Home</Link>
+        <span aria-hidden="true">/</span>
+        <span className="text-slate-300">Add Song</span>
+      </nav>
+
       <h1 className="text-2xl font-bold mb-6 text-violet-400">➕ Add New Song</h1>
 
       <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 mb-6 text-sm text-slate-400">
@@ -129,18 +135,6 @@ export default function AddSongPage() {
           or enable Telugu keyboard on your phone to type Telugu script. You can also copy-paste lyrics from other sources.
         </p>
       </div>
-
-      {success && (
-        <div className="bg-green-900/30 border border-green-700 rounded-xl p-4 mb-6 text-green-300">
-          ✅ Song added successfully! Redirecting...
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-6 text-red-300">
-          ❌ {error}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-5 bg-slate-800 border border-slate-700 rounded-2xl p-6">
         <div>

@@ -8,3 +8,22 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/*
+  Light theme: invert the slate palette so hardcoded dark-slate Tailwind utilities
+  automatically produce a light appearance. Tailwind v4 generates all color utilities
+  as var(--color-slate-*), so overriding them here flips every component at once.
+*/
+html.light {
+  --color-slate-50:  oklch(0.129 0.042 264.695); /* was slate-950 */
+  --color-slate-100: oklch(0.208 0.042 265.755); /* was slate-900 */
+  --color-slate-200: oklch(0.279 0.041 260.031); /* was slate-800 */
+  --color-slate-300: oklch(0.372 0.044 257.287); /* was slate-700 */
+  --color-slate-400: oklch(0.446 0.043 257.281); /* was slate-600 */
+  --color-slate-500: oklch(0.554 0.046 257.417); /* pivot — unchanged */
+  --color-slate-600: oklch(0.704 0.04  256.788); /* was slate-400 */
+  --color-slate-700: oklch(0.869 0.022 252.894); /* was slate-300 */
+  --color-slate-800: oklch(0.929 0.013 255.508); /* was slate-200 */
+  --color-slate-900: oklch(0.968 0.007 247.896); /* was slate-100 */
+  --color-slate-950: oklch(0.984 0.003 247.858); /* was slate-50  */
+}

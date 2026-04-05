@@ -32,6 +32,14 @@ export default async function SongPage({ params }: PageProps) {
   return (
     <div className="max-w-2xl mx-auto">
       <RecentlyViewedTracker songId={song.id} />
+
+      {/* Breadcrumb */}
+      <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500 mb-4 flex-wrap">
+        <Link href="/" className="hover:text-violet-400 transition-colors">Home</Link>
+        <span aria-hidden="true">/</span>
+        <span className="text-slate-300 truncate max-w-[260px]">{song.title_english || song.title_telugu}</span>
+      </nav>
+
       <div className="flex items-center justify-between mb-6">
         <Link href="/" className="text-violet-400 hover:text-violet-300 text-sm inline-flex items-center gap-1 transition-colors">
           ← Back to all songs

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { supabase, GENRES } from "@/lib/supabase";
 import Link from "next/link";
+import { toast } from "sonner";
+import { supabase, GENRES } from "@/lib/supabase";
 
 export default function EditSongPage() {
   const router = useRouter();
@@ -16,8 +17,13 @@ export default function EditSongPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [fetchError, setFetchError] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+
+  // Restore session auth
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("adminAuth") === "true") setAuthenticated(true);
+    } catch {}
+  }, []);
 
   const [form, setForm] = useState({
     title_telugu: "",
@@ -62,6 +68,9 @@ export default function EditSongPage() {
     if (res.ok) {
       setAuthenticated(true);
       setAuthError("");
+      try { sessionStorage.setItem("adminAuth", "true"); } catch {}
+    } else if (res.status === 429) {
+      setAuthError("Too many attempts. Try again in 15 minutes.");
     } else {
       setAuthError("Invalid password. Please try again.");
     }
@@ -70,7 +79,6 @@ export default function EditSongPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     const tags = form.tags
       ? form.tags.split(",").map((t) => t.trim()).filter(Boolean)
@@ -91,12 +99,10 @@ export default function EditSongPage() {
     setLoading(false);
 
     if (error) {
-      setError(error.message);
+      toast.error(error.message);
     } else {
-      setSuccess(true);
-      setTimeout(() => {
-        router.push(`/song/${id}`);
-      }, 1500);
+      toast.success("Song updated successfully!");
+      setTimeout(() => router.push(`/song/${id}`), 1200);
     }
   };
 
@@ -157,6 +163,16 @@ export default function EditSongPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500 mb-4 flex-wrap">
+        <Link href="/" className="hover:text-violet-400 transition-colors">Home</Link>
+        <span aria-hidden="true">/</span>
+        <Link href={`/song/${id}`} className="hover:text-violet-400 transition-colors truncate max-w-[180px]">
+          {form.title_english || form.title_telugu || "Song"}
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span className="text-slate-300">Edit</span>
+      </nav>
+
       <Link
         href={`/song/${id}`}
         className="text-violet-400 hover:text-violet-300 text-sm mb-6 inline-flex items-center gap-1 transition-colors"
@@ -165,18 +181,6 @@ export default function EditSongPage() {
       </Link>
 
       <h1 className="text-2xl font-bold mb-6 mt-4 text-violet-400">✏️ Edit Song</h1>
-
-      {success && (
-        <div className="bg-green-900/30 border border-green-700 rounded-xl p-4 mb-6 text-green-300">
-          ✅ Song updated successfully! Redirecting...
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 mb-6 text-red-300">
-          ❌ {error}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-5 bg-slate-800 border border-slate-700 rounded-2xl p-6">
         <div>
