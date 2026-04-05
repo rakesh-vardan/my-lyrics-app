@@ -88,7 +88,7 @@ export default function HomePage() {
       .then((r) => r.json())
       .then((data) => {
         if (data?.error) {
-          setSearchError("Search unavailable. Run search_function.sql in Supabase SQL Editor.");
+          setSearchError("Search failed: " + data.error);
           setSearchResults([]);
         } else {
           setSearchResults(Array.isArray(data) ? data : []);
