@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CopyButton from "@/components/CopyButton";
 import FavoriteButton from "@/components/FavoriteButton";
+import RecentlyViewedTracker from "@/components/RecentlyViewedTracker";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -29,6 +30,7 @@ export default async function SongPage({ params }: PageProps) {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <RecentlyViewedTracker songId={song.id} />
       <div className="flex items-center justify-between mb-6">
         <Link href="/" className="text-violet-400 hover:text-violet-300 text-sm inline-flex items-center gap-1 transition-colors">
           ← Back to all songs

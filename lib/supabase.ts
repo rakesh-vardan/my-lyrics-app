@@ -25,6 +25,9 @@ export const GENRES = [
 
 export type Genre = (typeof GENRES)[number];
 
+// Song metadata without lyrics — used for list/search views to reduce payload
+export type SongMeta = Omit<Song, "lyrics">;
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
