@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CopyButton from "@/components/CopyButton";
 import FavoriteButton from "@/components/FavoriteButton";
+import LyricsControls from "@/components/LyricsControls";
 import RecentlyViewedTracker from "@/components/RecentlyViewedTracker";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -80,9 +81,7 @@ export default async function SongPage({ params }: PageProps) {
           <CopyButton lyrics={song.lyrics} />
         </div>
 
-        <div className="telugu-text text-xl leading-loose text-slate-100 whitespace-pre-wrap font-medium">
-          {song.lyrics}
-        </div>
+        <LyricsControls lyrics={song.lyrics} title={song.title_telugu} />
       </div>
 
       <p className="text-slate-600 text-xs text-center mt-4">
