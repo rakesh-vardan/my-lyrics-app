@@ -27,3 +27,5 @@ CREATE POLICY "Allow public insert" ON songs
 
 CREATE POLICY "Allow public update" ON songs
   FOR UPDATE USING (true) WITH CHECK (true);
+
+ALTER TABLE songs ADD COLUMN IF NOT EXISTS genre TEXT;

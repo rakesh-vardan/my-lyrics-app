@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase, GENRES } from "@/lib/supabase";
 import Link from "next/link";
 
 export default function EditSongPage() {
@@ -23,6 +23,7 @@ export default function EditSongPage() {
     title_telugu: "",
     title_english: "",
     movie_name: "",
+    genre: "",
     lyrics: "",
     tags: "",
   });
@@ -39,6 +40,7 @@ export default function EditSongPage() {
           title_telugu: data.title_telugu,
           title_english: data.title_english || "",
           movie_name: data.movie_name || "",
+          genre: data.genre || "",
           lyrics: data.lyrics,
           tags: data.tags ? data.tags.join(", ") : "",
         });
@@ -80,6 +82,7 @@ export default function EditSongPage() {
         title_telugu: form.title_telugu,
         title_english: form.title_english || null,
         movie_name: form.movie_name || null,
+        genre: form.genre || null,
         lyrics: form.lyrics,
         tags: tags.length > 0 ? tags : null,
       })
@@ -214,6 +217,22 @@ export default function EditSongPage() {
             placeholder="e.g., Nuvve Nuvve (2002)"
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-1">
+            Genre / Category
+          </label>
+          <select
+            value={form.genre}
+            onChange={(e) => setForm({ ...form, genre: e.target.value })}
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          >
+            <option value="">Select a genre...</option>
+            {GENRES.map((g) => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
         </div>
 
         <div>

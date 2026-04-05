@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase, GENRES } from "@/lib/supabase";
 
 export default function AddSongPage() {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function AddSongPage() {
     title_telugu: "",
     title_english: "",
     movie_name: "",
+    genre: "",
     lyrics: "",
     tags: "",
   });
@@ -50,6 +51,7 @@ export default function AddSongPage() {
         title_telugu: form.title_telugu,
         title_english: form.title_english || null,
         movie_name: form.movie_name || null,
+        genre: form.genre || null,
         lyrics: form.lyrics,
         tags: tags.length > 0 ? tags : null,
       },
@@ -65,6 +67,7 @@ export default function AddSongPage() {
         title_telugu: "",
         title_english: "",
         movie_name: "",
+        genre: "",
         lyrics: "",
         tags: "",
       });
@@ -178,6 +181,22 @@ export default function AddSongPage() {
             placeholder="e.g., Nuvve Nuvve (2002)"
             className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-1">
+            Genre / Category
+          </label>
+          <select
+            value={form.genre}
+            onChange={(e) => setForm({ ...form, genre: e.target.value })}
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          >
+            <option value="">Select a genre...</option>
+            {GENRES.map((g) => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
         </div>
 
         <div>

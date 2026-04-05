@@ -5,10 +5,25 @@ export type Song = {
   title_telugu: string;
   title_english: string | null;
   movie_name: string | null;
+  genre: string | null;
   lyrics: string;
   tags: string[] | null;
   created_at: string;
 };
+
+export const GENRES = [
+  "Devotional",
+  "Romantic",
+  "Melody",
+  "Folk",
+  "Classical",
+  "Patriotic",
+  "Sad",
+  "Dance",
+  "Other",
+] as const;
+
+export type Genre = (typeof GENRES)[number];
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

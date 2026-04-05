@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import CopyButton from "@/components/CopyButton";
+import FavoriteButton from "@/components/FavoriteButton";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -53,6 +54,11 @@ export default async function SongPage({ params }: PageProps) {
               🎬 <span>{song.movie_name}</span>
             </p>
           )}
+          {song.genre && (
+            <span className="inline-block mt-2 text-xs bg-violet-600/30 text-violet-300 px-3 py-1 rounded-full border border-violet-500/30">
+              {song.genre}
+            </span>
+          )}
           {song.tags && song.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
               {song.tags.map((tag: string) => (
@@ -67,7 +73,8 @@ export default async function SongPage({ params }: PageProps) {
           )}
         </div>
 
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end gap-2 mb-4">
+          <FavoriteButton songId={song.id} />
           <CopyButton lyrics={song.lyrics} />
         </div>
 
