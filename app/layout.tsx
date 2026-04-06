@@ -83,7 +83,7 @@ export default function RootLayout({
             </div>
             {/* Branding + copyright */}
             <p className="text-center text-xs text-slate-600">
-              ♪ Telugu Lyrics Vault &middot; Made with <span className="text-red-400">♥</span> for Telugu lyrics &amp; music
+              ♪ Telugu Lyrics Vault &middot; Made with <span className="text-red-400">♥</span>  for Telugu lyrics &amp; music
             </p>
             <p className="text-center text-xs text-slate-700 mt-1">
               &copy; {new Date().getFullYear()} &middot; Built with Next.js &amp; Supabase

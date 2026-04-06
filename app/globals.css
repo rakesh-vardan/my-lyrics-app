@@ -26,4 +26,8 @@ html.light {
   --color-slate-800: oklch(0.929 0.013 255.508); /* was slate-200 */
   --color-slate-900: oklch(0.968 0.007 247.896); /* was slate-100 */
   --color-slate-950: oklch(0.984 0.003 247.858); /* was slate-50  */
+
+  /* Sky accent — darken light shades so text is readable on light backgrounds */
+  --color-sky-300: oklch(0.500 0.134 221.3);   /* was sky-700 */
+  --color-sky-400: oklch(0.562 0.143 221.7);   /* was sky-600 */
 }
