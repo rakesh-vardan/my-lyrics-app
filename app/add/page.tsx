@@ -72,7 +72,10 @@ export default function AddSongPage() {
     if (res.ok) {
       setAuthenticated(true);
       setAuthError("");
-      try { sessionStorage.setItem("adminAuth", "true"); } catch {}
+      try {
+        sessionStorage.setItem("adminAuth", "true");
+        sessionStorage.setItem("adminToken", password);
+      } catch {}
     } else if (res.status === 429) {
       setAuthError("Too many attempts. Try again in 15 minutes.");
     } else {
@@ -110,6 +113,16 @@ export default function AddSongPage() {
       toast.error(error.message);
     } else {
       toast.success("Song added successfully!");
+      // Invalidate caches
+      try { sessionStorage.removeItem("lyrics-filter-options"); } catch {}
+      fetch("/api/revalidate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-revalidate-token": sessionStorage.getItem("adminToken") ?? "",
+        },
+        body: JSON.stringify({}),
+      }).catch(() => {});
       setForm({ title_telugu: "", title_english: "", movie_name: "", genre: "", year: "", singer: "", lyricist: "", music_director: "", media_url: "", lyrics: "", tags: "" });
       setTimeout(() => router.push("/"), 1200);
     }

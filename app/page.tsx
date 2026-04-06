@@ -74,8 +74,26 @@ export default function HomePage() {
     localStorage.setItem("lyrics-view-mode", v);
   };
 
-  // --- Load filter options once (lightweight: just the columns we need) ---
+  // --- Load filter options once (with sessionStorage cache) ---
   useEffect(() => {
+    const FILTER_CACHE_KEY = "lyrics-filter-options";
+    const FILTER_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    // Try sessionStorage first
+    try {
+      const cached = sessionStorage.getItem(FILTER_CACHE_KEY);
+      if (cached) {
+        const { movies, tags, genres, count, ts } = JSON.parse(cached);
+        if (Date.now() - ts < FILTER_CACHE_TTL) {
+          setAvailableMovies(movies);
+          setAvailableTags(tags);
+          setAvailableGenres(genres);
+          setGlobalCount(count);
+          return; // Cache hit — skip DB queries
+        }
+      }
+    } catch { /* ignore parse errors */ }
+
     async function loadFilterOptions() {
       const [moviesRes, tagsRes, genresRes, countRes] = await Promise.all([
         supabase.from("songs").select("movie_name").not("movie_name", "is", null),
@@ -83,19 +101,26 @@ export default function HomePage() {
         supabase.from("songs").select("genre").not("genre", "is", null),
         supabase.from("songs").select("id", { count: "exact", head: true }),
       ]);
-      if (moviesRes.data) {
-        const movies = [...new Set(moviesRes.data.map((r: { movie_name: string }) => r.movie_name))].sort((a, b) => a.localeCompare(b));
-        setAvailableMovies(movies);
-      }
-      if (tagsRes.data) {
-        const tags = [...new Set(tagsRes.data.flatMap((r: { tags: string[] }) => r.tags ?? []))].sort((a, b) => a.localeCompare(b));
-        setAvailableTags(tags);
-      }
-      if (genresRes.data) {
-        const dbGenres = new Set(genresRes.data.map((r: { genre: string }) => r.genre));
-        setAvailableGenres(GENRES.filter(g => dbGenres.has(g)));
-      }
-      if (countRes.count !== null) setGlobalCount(countRes.count);
+      const movies = moviesRes.data
+        ? [...new Set(moviesRes.data.map((r: { movie_name: string }) => r.movie_name))].sort((a, b) => a.localeCompare(b))
+        : [];
+      const tags = tagsRes.data
+        ? [...new Set(tagsRes.data.flatMap((r: { tags: string[] }) => r.tags ?? []))].sort((a, b) => a.localeCompare(b))
+        : [];
+      const genres = genresRes.data
+        ? GENRES.filter(g => new Set(genresRes.data.map((r: { genre: string }) => r.genre)).has(g))
+        : [];
+      const count = countRes.count ?? 0;
+
+      setAvailableMovies(movies);
+      setAvailableTags(tags);
+      setAvailableGenres(genres);
+      setGlobalCount(count);
+
+      // Persist to sessionStorage
+      try {
+        sessionStorage.setItem(FILTER_CACHE_KEY, JSON.stringify({ movies, tags, genres, count, ts: Date.now() }));
+      } catch { /* quota exceeded — ignore */ }
     }
     loadFilterOptions();
   }, []);

@@ -9,7 +9,7 @@ import SwipeNavigator from "@/components/SwipeNavigator";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 120; // Re-generate at most every 2 minutes
 
 interface PageProps {
   params: Promise<{ id: string }>;

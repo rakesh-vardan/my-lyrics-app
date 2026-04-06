@@ -78,7 +78,10 @@ export default function EditSongPage() {
     if (res.ok) {
       setAuthenticated(true);
       setAuthError("");
-      try { sessionStorage.setItem("adminAuth", "true"); } catch {}
+      try {
+        sessionStorage.setItem("adminAuth", "true");
+        sessionStorage.setItem("adminToken", password);
+      } catch {}
     } else if (res.status === 429) {
       setAuthError("Too many attempts. Try again in 15 minutes.");
     } else {
@@ -117,6 +120,16 @@ export default function EditSongPage() {
       toast.error(error.message);
     } else {
       toast.success("Song updated successfully!");
+      // Invalidate caches
+      try { sessionStorage.removeItem("lyrics-filter-options"); } catch {}
+      fetch("/api/revalidate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-revalidate-token": sessionStorage.getItem("adminToken") ?? "",
+        },
+        body: JSON.stringify({ songId: id }),
+      }).catch(() => {});
       setTimeout(() => router.push(`/song/${id}`), 1200);
     }
   };
