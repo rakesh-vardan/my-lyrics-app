@@ -40,7 +40,7 @@ export default function RootLayout({
         {/* Prevent FOUC: apply theme class before React hydrates */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme')||'dark';var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='light'||(t==='system'&&!d))document.documentElement.classList.add('light');}catch(e){}})();` }} />
       </head>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-slate-900 text-slate-100 min-h-screen flex flex-col`}>
+      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-slate-900 text-slate-100 min-h-screen flex flex-col overflow-x-hidden`}>
         <nav className="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
             <Link href="/" className="text-xl font-bold text-sky-400 hover:text-sky-300 transition-colors shrink-0">
@@ -69,7 +69,7 @@ export default function RootLayout({
             </div>
           </div>
         </nav>
-        <main className="max-w-4xl mx-auto px-4 py-6 pb-24">
+        <main className="max-w-4xl mx-auto px-4 py-6 pb-24 w-full">
           {children}
         </main>
         <footer className="border-t border-slate-800 bg-slate-900 mt-auto">

@@ -350,7 +350,7 @@ export default function HomePage() {
   const chipInactive = "bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600";
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       {/* ── Recently Viewed ─────────────────────────────── */}
       {showRecentSection && (
         <div className="mb-6">
