@@ -30,6 +30,11 @@ export default function EditSongPage() {
     title_english: "",
     movie_name: "",
     genre: "",
+    year: "",
+    singer: "",
+    lyricist: "",
+    music_director: "",
+    media_url: "",
     lyrics: "",
     tags: "",
   });
@@ -47,6 +52,11 @@ export default function EditSongPage() {
           title_english: data.title_english || "",
           movie_name: data.movie_name || "",
           genre: data.genre || "",
+          year: data.year ? String(data.year) : "",
+          singer: data.singer || "",
+          lyricist: data.lyricist || "",
+          music_director: data.music_director || "",
+          media_url: data.media_url || "",
           lyrics: data.lyrics,
           tags: data.tags ? data.tags.join(", ") : "",
         });
@@ -91,6 +101,11 @@ export default function EditSongPage() {
         title_english: form.title_english || null,
         movie_name: form.movie_name || null,
         genre: form.genre || null,
+        year: form.year ? Number.parseInt(form.year, 10) : null,
+        singer: form.singer || null,
+        lyricist: form.lyricist || null,
+        music_director: form.music_director || null,
+        media_url: form.media_url || null,
         lyrics: form.lyrics,
         tags: tags.length > 0 ? tags : null,
       })
@@ -237,6 +252,73 @@ export default function EditSongPage() {
               <option key={g} value={g}>{g}</option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-1">
+            Year of Release
+          </label>
+          <input
+            type="number"
+            value={form.year}
+            onChange={(e) => setForm({ ...form, year: e.target.value })}
+            placeholder="e.g., 2002"
+            min="1900"
+            max="2099"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Singer(s)
+            </label>
+            <input
+              type="text"
+              value={form.singer}
+              onChange={(e) => setForm({ ...form, singer: e.target.value })}
+              placeholder="e.g., S.P. Balasubrahmanyam"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Lyricist
+            </label>
+            <input
+              type="text"
+              value={form.lyricist}
+              onChange={(e) => setForm({ ...form, lyricist: e.target.value })}
+              placeholder="e.g., Sirivennela"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Music Director
+            </label>
+            <input
+              type="text"
+              value={form.music_director}
+              onChange={(e) => setForm({ ...form, music_director: e.target.value })}
+              placeholder="e.g., M.M. Keeravani"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-1">
+            YouTube / Spotify URL
+          </label>
+          <input
+            type="url"
+            value={form.media_url}
+            onChange={(e) => setForm({ ...form, media_url: e.target.value })}
+            placeholder="e.g., https://www.youtube.com/watch?v=..."
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
         </div>
 
         <div>

@@ -42,6 +42,18 @@ export default function RootLayout({
               🎵 Telugu Lyrics Vault
             </Link>
             <div className="flex items-center gap-2">
+              <Link
+                href="/movies"
+                className="text-sm text-slate-400 hover:text-slate-200 transition-colors px-2 py-1.5 rounded-lg hover:bg-slate-700 hidden sm:inline-flex"
+              >
+                🎬 Movies
+              </Link>
+              <Link
+                href="/genres"
+                className="text-sm text-slate-400 hover:text-slate-200 transition-colors px-2 py-1.5 rounded-lg hover:bg-slate-700 hidden sm:inline-flex"
+              >
+                🎵 Genres
+              </Link>
               <ThemeToggle />
               <Link
                 href="/add"

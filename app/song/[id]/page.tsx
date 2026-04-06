@@ -4,6 +4,8 @@ import CopyButton from "@/components/CopyButton";
 import FavoriteButton from "@/components/FavoriteButton";
 import LyricsControls from "@/components/LyricsControls";
 import RecentlyViewedTracker from "@/components/RecentlyViewedTracker";
+import MediaEmbed from "@/components/MediaEmbed";
+import SwipeNavigator from "@/components/SwipeNavigator";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -27,6 +29,24 @@ export default async function SongPage({ params }: PageProps) {
 
   if (error || !song) {
     notFound();
+  }
+
+  // Fetch adjacent songs by the same movie for prev/next navigation
+  let prevId: string | null = null;
+  let nextId: string | null = null;
+
+  if (song.movie_name) {
+    const { data: siblings } = await supabase
+      .from("songs")
+      .select("id")
+      .eq("movie_name", song.movie_name)
+      .order("created_at", { ascending: true });
+
+    if (siblings && siblings.length > 1) {
+      const idx = siblings.findIndex((s) => s.id === id);
+      if (idx > 0) prevId = siblings[idx - 1].id;
+      if (idx < siblings.length - 1) nextId = siblings[idx + 1].id;
+    }
   }
 
   return (
@@ -65,10 +85,22 @@ export default async function SongPage({ params }: PageProps) {
               🎬 <span>{song.movie_name}</span>
             </p>
           )}
-          {song.genre && (
-            <span className="inline-block mt-2 text-xs bg-violet-600/30 text-violet-300 px-3 py-1 rounded-full border border-violet-500/30">
-              {song.genre}
-            </span>
+          {song.year && (
+            <p className="text-slate-400 text-sm mt-1">📅 {song.year}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
+            {song.genre && (
+              <span className="inline-block text-xs bg-violet-600/30 text-violet-300 px-3 py-1 rounded-full border border-violet-500/30">
+                {song.genre}
+              </span>
+            )}
+          </div>
+          {(song.singer || song.lyricist || song.music_director) && (
+            <div className="mt-3 space-y-1 text-sm text-slate-400">
+              {song.singer && <p>🎤 Singer: <span className="text-slate-200">{song.singer}</span></p>}
+              {song.lyricist && <p>✍️ Lyricist: <span className="text-slate-200">{song.lyricist}</span></p>}
+              {song.music_director && <p>🎼 Music: <span className="text-slate-200">{song.music_director}</span></p>}
+            </div>
           )}
           {song.tags && song.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
@@ -90,7 +122,11 @@ export default async function SongPage({ params }: PageProps) {
         </div>
 
         <LyricsControls lyrics={song.lyrics} title={song.title_telugu} />
+
+        {song.media_url && <MediaEmbed url={song.media_url} />}
       </div>
+
+      <SwipeNavigator prevId={prevId} nextId={nextId} />
 
       <p className="text-slate-600 text-xs text-center mt-4">
         Added {new Date(song.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}

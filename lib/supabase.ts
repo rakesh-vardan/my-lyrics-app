@@ -6,6 +6,11 @@ export type Song = {
   title_english: string | null;
   movie_name: string | null;
   genre: string | null;
+  year: number | null;
+  singer: string | null;
+  lyricist: string | null;
+  music_director: string | null;
+  media_url: string | null;
   lyrics: string;
   tags: string[] | null;
   created_at: string;

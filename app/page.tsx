@@ -7,6 +7,7 @@ import { supabase, GENRES } from "@/lib/supabase";
 import type { SongMeta } from "@/lib/supabase";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
+import AlphabetIndex from "@/components/AlphabetIndex";
 
 type SortOption = "recent" | "title_telugu" | "title_english" | "movie_name";
 
@@ -39,6 +40,7 @@ export default function HomePage() {
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedMovie, setSelectedMovie] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
+  const [selectedLetter, setSelectedLetter] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
 
   // Pagination
@@ -68,7 +70,7 @@ export default function HomePage() {
       try {
         const { data, error } = await supabase
           .from("songs")
-          .select("id, title_telugu, title_english, movie_name, genre, tags, created_at")
+          .select("id, title_telugu, title_english, movie_name, genre, year, singer, lyricist, music_director, media_url, tags, created_at")
           .order("created_at", { ascending: false });
         if (error) throw error;
         setAllSongs((data as SongMeta[]) || []);
@@ -148,6 +150,7 @@ export default function HomePage() {
     if (selectedGenre) base = base.filter((s) => s.genre === selectedGenre);
     if (selectedMovie) base = base.filter((s) => s.movie_name === selectedMovie);
     if (selectedTag) base = base.filter((s) => s.tags?.includes(selectedTag));
+    if (selectedLetter) base = base.filter((s) => s.title_telugu.startsWith(selectedLetter));
 
     // Skip sort when search is active — pgroonga already ranked by relevance
     if (!debouncedQuery.trim()) {
@@ -167,7 +170,7 @@ export default function HomePage() {
       });
     }
     return base;
-  }, [searchResults, allSongs, showFavoritesOnly, selectedGenre, selectedMovie, selectedTag, sortBy, debouncedQuery, favorites]);
+  }, [searchResults, allSongs, showFavoritesOnly, selectedGenre, selectedMovie, selectedTag, selectedLetter, sortBy, debouncedQuery, favorites]);
 
   const visibleResults = results.slice(0, visibleCount);
   const hasMore = visibleCount < results.length;
@@ -175,7 +178,7 @@ export default function HomePage() {
   // Reset pagination on any filter/search change
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [query, showFavoritesOnly, selectedGenre, selectedMovie, selectedTag, sortBy]);
+  }, [query, showFavoritesOnly, selectedGenre, selectedMovie, selectedTag, selectedLetter, sortBy]);
 
   // --- Infinite scroll sentinel ---
   useEffect(() => {
@@ -202,6 +205,7 @@ export default function HomePage() {
     selectedGenre && `Genre: ${selectedGenre}`,
     selectedMovie && `Movie: ${selectedMovie}`,
     selectedTag && `Tag: ${selectedTag}`,
+    selectedLetter && `Letter: ${selectedLetter}`,
   ].filter(Boolean) as string[];
   const hasActiveFilters = activeFilters.length > 0;
 
@@ -210,6 +214,7 @@ export default function HomePage() {
     setSelectedGenre("");
     setSelectedMovie("");
     setSelectedTag("");
+    setSelectedLetter("");
   };
 
   // Show recently viewed only when completely unfiltered / not searching
@@ -361,7 +366,10 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Row 4: Active filter pills + Clear all */}
+        {/* Row 4: Telugu alphabet index */}
+        <AlphabetIndex activeLetter={selectedLetter} onSelect={setSelectedLetter} />
+
+        {/* Row 5: Active filter pills + Clear all */}
         {hasActiveFilters && (
           <div className="flex flex-wrap items-center gap-2">
             {activeFilters.map((label) => (
