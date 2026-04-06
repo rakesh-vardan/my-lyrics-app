@@ -39,6 +39,8 @@ export default function RootLayout({
       <head>
         {/* Prevent FOUC: apply theme class before React hydrates */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme')||'dark';var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='light'||(t==='system'&&!d))document.documentElement.classList.add('light');}catch(e){}})();` }} />
+        {/* Register service worker for PWA install support */}
+        <script dangerouslySetInnerHTML={{ __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js')});}` }} />
       </head>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-slate-900 text-slate-100 min-h-screen flex flex-col overflow-x-hidden`}>
         <nav className="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
