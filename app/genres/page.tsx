@@ -58,12 +58,12 @@ export default async function GenresPage() {
   return (
     <div>
       <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
-        <Link href="/" className="hover:text-violet-400 transition-colors">Home</Link>
+        <Link href="/" className="hover:text-sky-400 transition-colors">Home</Link>
         <span aria-hidden="true">/</span>
         <span className="text-slate-300">Genres</span>
       </nav>
 
-      <h1 className="text-2xl font-bold mb-6 text-violet-400">🎵 Browse by Genre</h1>
+      <h1 className="text-2xl font-bold mb-6 text-sky-400">🎵 Browse by Genre</h1>
 
       {/* Genre tiles overview */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
@@ -71,7 +71,7 @@ export default async function GenresPage() {
           <a
             key={genre}
             href={`#genre-${genre}`}
-            className="bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-violet-500 transition-colors text-center"
+            className="bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-sky-500 transition-colors text-center"
           >
             <div className="text-3xl mb-2">{GENRE_ICONS[genre] || "🎵"}</div>
             <h3 className="text-sm font-semibold text-slate-200">{genre}</h3>
@@ -89,7 +89,7 @@ export default async function GenresPage() {
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl">{GENRE_ICONS[genre] || "🎵"}</span>
               <h2 className="text-xl font-bold text-slate-100">{genre}</h2>
-              <span className="text-xs bg-violet-600/20 text-violet-300 px-2 py-0.5 rounded-full border border-violet-500/20">
+              <span className="text-xs bg-sky-600/20 text-sky-300 px-2 py-0.5 rounded-full border border-sky-500/20">
                 {genreSongs.length}
               </span>
             </div>
@@ -98,7 +98,7 @@ export default async function GenresPage() {
                 <Link
                   key={s.id}
                   href={`/song/${s.id}`}
-                  className="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:border-violet-500 hover:bg-slate-700 transition-colors"
+                  className="bg-slate-800 border border-slate-700 rounded-lg p-3 hover:border-sky-500 hover:bg-slate-700 transition-colors"
                 >
                   <p className="text-sm font-semibold text-slate-100 telugu-text truncate">
                     {s.title_telugu}
@@ -108,7 +108,7 @@ export default async function GenresPage() {
                       <span className="text-xs text-slate-400 truncate">{s.title_english}</span>
                     )}
                     {s.movie_name && (
-                      <span className="text-xs text-violet-400 truncate">🎬 {s.movie_name}</span>
+                      <span className="text-xs text-sky-400 truncate">🎬 {s.movie_name}</span>
                     )}
                   </div>
                 </Link>

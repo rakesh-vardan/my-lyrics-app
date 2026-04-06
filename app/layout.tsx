@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   description: "Personal Telugu Lyrics Vault",
   manifest: "/manifest.json",
   icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
     apple: "/icon-192x192.png",
   },
   appleWebApp: {
@@ -21,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#7c3aed",
+  themeColor: "#0284c7",
 };
 
 export default function RootLayout({
@@ -38,7 +43,7 @@ export default function RootLayout({
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-slate-900 text-slate-100 min-h-screen`}>
         <nav className="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-            <Link href="/" className="text-xl font-bold text-violet-400 hover:text-violet-300 transition-colors shrink-0">
+            <Link href="/" className="text-xl font-bold text-sky-400 hover:text-sky-300 transition-colors shrink-0">
               🎵 Telugu Lyrics Vault
             </Link>
             <div className="flex items-center gap-2">
@@ -57,7 +62,7 @@ export default function RootLayout({
               <ThemeToggle />
               <Link
                 href="/add"
-                className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 + Add Song
               </Link>

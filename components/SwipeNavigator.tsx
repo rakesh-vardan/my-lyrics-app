@@ -55,7 +55,7 @@ export default function SwipeNavigator({
       {prevId ? (
         <button
           onClick={() => router.push(`/song/${prevId}`)}
-          className="text-violet-400 hover:text-violet-300 transition-colors inline-flex items-center gap-1"
+          className="text-sky-400 hover:text-sky-300 transition-colors inline-flex items-center gap-1"
         >
           ← Previous
         </button>
@@ -65,7 +65,7 @@ export default function SwipeNavigator({
       {nextId ? (
         <button
           onClick={() => router.push(`/song/${nextId}`)}
-          className="text-violet-400 hover:text-violet-300 transition-colors inline-flex items-center gap-1"
+          className="text-sky-400 hover:text-sky-300 transition-colors inline-flex items-center gap-1"
         >
           Next →
         </button>

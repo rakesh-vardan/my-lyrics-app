@@ -55,13 +55,13 @@ export default async function SongPage({ params }: PageProps) {
 
       {/* Breadcrumb */}
       <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500 mb-4 flex-wrap">
-        <Link href="/" className="hover:text-violet-400 transition-colors">Home</Link>
+        <Link href="/" className="hover:text-sky-400 transition-colors">Home</Link>
         <span aria-hidden="true">/</span>
         <span className="text-slate-300 truncate max-w-[260px]">{song.title_english || song.title_telugu}</span>
       </nav>
 
       <div className="flex items-center justify-between mb-6">
-        <Link href="/" className="text-violet-400 hover:text-violet-300 text-sm inline-flex items-center gap-1 transition-colors">
+        <Link href="/" className="text-sky-400 hover:text-sky-300 text-sm inline-flex items-center gap-1 transition-colors">
           ← Back to all songs
         </Link>
         <Link
@@ -81,7 +81,7 @@ export default async function SongPage({ params }: PageProps) {
             <p className="text-slate-400 text-lg">{song.title_english}</p>
           )}
           {song.movie_name && (
-            <p className="text-violet-400 mt-2 flex items-center gap-1">
+            <p className="text-sky-400 mt-2 flex items-center gap-1">
               🎬 <span>{song.movie_name}</span>
             </p>
           )}
@@ -90,7 +90,7 @@ export default async function SongPage({ params }: PageProps) {
           )}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
             {song.genre && (
-              <span className="inline-block text-xs bg-violet-600/30 text-violet-300 px-3 py-1 rounded-full border border-violet-500/30">
+              <span className="inline-block text-xs bg-sky-600/30 text-sky-300 px-3 py-1 rounded-full border border-sky-500/30">
                 {song.genre}
               </span>
             )}

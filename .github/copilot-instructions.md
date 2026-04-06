@@ -43,4 +43,4 @@ A PWA for browsing, searching, and managing Telugu song lyrics. Built with Next.
 
 - Dark theme is the default. Light mode via `html.light` class with CSS variable overrides.
 - Telugu text uses the font stack: Noto Sans Telugu, Mandali, Vemana2000.
-- Theme colors use Tailwind's slate palette with violet accents.
+- Theme colors use Tailwind's slate palette with sky accents.

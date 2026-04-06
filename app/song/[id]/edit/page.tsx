@@ -125,7 +125,7 @@ export default function EditSongPage() {
     return (
       <div className="max-w-sm mx-auto mt-16">
         <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8">
-          <h1 className="text-2xl font-bold text-center mb-6 text-violet-400">🔐 Admin Access</h1>
+          <h1 className="text-2xl font-bold text-center mb-6 text-sky-400">🔐 Admin Access</h1>
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
@@ -135,7 +135,7 @@ export default function EditSongPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 required
                 autoFocus
               />
@@ -145,7 +145,7 @@ export default function EditSongPage() {
             )}
             <button
               type="submit"
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white py-2 rounded-lg font-medium transition-colors"
+              className="w-full bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-lg font-medium transition-colors"
             >
               Unlock
             </button>
@@ -168,7 +168,7 @@ export default function EditSongPage() {
       <div className="max-w-2xl mx-auto text-center py-16">
         <div className="bg-red-900/30 border border-red-700 rounded-xl p-6 text-red-300">
           ❌ Song not found or could not be loaded.{" "}
-          <Link href="/" className="text-violet-400 hover:text-violet-300 underline">
+          <Link href="/" className="text-sky-400 hover:text-sky-300 underline">
             Return home
           </Link>
         </div>
@@ -179,9 +179,9 @@ export default function EditSongPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-slate-500 mb-4 flex-wrap">
-        <Link href="/" className="hover:text-violet-400 transition-colors">Home</Link>
+        <Link href="/" className="hover:text-sky-400 transition-colors">Home</Link>
         <span aria-hidden="true">/</span>
-        <Link href={`/song/${id}`} className="hover:text-violet-400 transition-colors truncate max-w-[180px]">
+        <Link href={`/song/${id}`} className="hover:text-sky-400 transition-colors truncate max-w-[180px]">
           {form.title_english || form.title_telugu || "Song"}
         </Link>
         <span aria-hidden="true">/</span>
@@ -190,12 +190,12 @@ export default function EditSongPage() {
 
       <Link
         href={`/song/${id}`}
-        className="text-violet-400 hover:text-violet-300 text-sm mb-6 inline-flex items-center gap-1 transition-colors"
+        className="text-sky-400 hover:text-sky-300 text-sm mb-6 inline-flex items-center gap-1 transition-colors"
       >
         ← Back to song
       </Link>
 
-      <h1 className="text-2xl font-bold mb-6 mt-4 text-violet-400">✏️ Edit Song</h1>
+      <h1 className="text-2xl font-bold mb-6 mt-4 text-sky-400">✏️ Edit Song</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5 bg-slate-800 border border-slate-700 rounded-2xl p-6">
         <div>
@@ -207,7 +207,7 @@ export default function EditSongPage() {
             value={form.title_telugu}
             onChange={(e) => setForm({ ...form, title_telugu: e.target.value })}
             placeholder="e.g., నువ్వే నువ్వే"
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 telugu-text text-lg"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 telugu-text text-lg"
             required
           />
         </div>
@@ -221,7 +221,7 @@ export default function EditSongPage() {
             value={form.title_english}
             onChange={(e) => setForm({ ...form, title_english: e.target.value })}
             placeholder="e.g., Nuvve Nuvve"
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
 
@@ -234,7 +234,7 @@ export default function EditSongPage() {
             value={form.movie_name}
             onChange={(e) => setForm({ ...form, movie_name: e.target.value })}
             placeholder="e.g., Nuvve Nuvve (2002)"
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
 
@@ -245,7 +245,7 @@ export default function EditSongPage() {
           <select
             value={form.genre}
             onChange={(e) => setForm({ ...form, genre: e.target.value })}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
           >
             <option value="">Select a genre...</option>
             {GENRES.map((g) => (
@@ -265,7 +265,7 @@ export default function EditSongPage() {
             placeholder="e.g., 2002"
             min="1900"
             max="2099"
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
 
@@ -279,7 +279,7 @@ export default function EditSongPage() {
               value={form.singer}
               onChange={(e) => setForm({ ...form, singer: e.target.value })}
               placeholder="e.g., S.P. Balasubrahmanyam"
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>
           <div>
@@ -291,7 +291,7 @@ export default function EditSongPage() {
               value={form.lyricist}
               onChange={(e) => setForm({ ...form, lyricist: e.target.value })}
               placeholder="e.g., Sirivennela"
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>
           <div>
@@ -303,7 +303,7 @@ export default function EditSongPage() {
               value={form.music_director}
               onChange={(e) => setForm({ ...form, music_director: e.target.value })}
               placeholder="e.g., M.M. Keeravani"
-              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>
         </div>
@@ -317,7 +317,7 @@ export default function EditSongPage() {
             value={form.media_url}
             onChange={(e) => setForm({ ...form, media_url: e.target.value })}
             placeholder="e.g., https://www.youtube.com/watch?v=..."
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
 
@@ -330,7 +330,7 @@ export default function EditSongPage() {
             value={form.tags}
             onChange={(e) => setForm({ ...form, tags: e.target.value })}
             placeholder="e.g., Melody, Sid Sriram, Love"
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
 
@@ -343,7 +343,7 @@ export default function EditSongPage() {
             onChange={(e) => setForm({ ...form, lyrics: e.target.value })}
             placeholder="Paste Telugu lyrics here..."
             rows={12}
-            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 telugu-text text-base leading-relaxed resize-y"
+            className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 telugu-text text-base leading-relaxed resize-y"
             required
           />
         </div>
@@ -351,7 +351,7 @@ export default function EditSongPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-violet-800 disabled:opacity-60 text-white py-3 rounded-xl font-semibold text-base transition-colors"
+          className="w-full bg-sky-600 hover:bg-sky-700 disabled:bg-sky-800 disabled:opacity-60 text-white py-3 rounded-xl font-semibold text-base transition-colors"
         >
           {loading ? "Saving..." : "💾 Save Changes"}
         </button>

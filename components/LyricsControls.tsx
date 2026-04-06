@@ -169,7 +169,7 @@ export default function LyricsControls({
           onClick={toggleScroll}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
             isScrolling
-              ? "bg-violet-600 hover:bg-violet-500 text-white"
+              ? "bg-sky-600 hover:bg-sky-500 text-white"
               : "bg-slate-700 hover:bg-slate-600 text-slate-300"
           }`}
           title={isScrolling ? "Stop auto-scroll" : "Auto-scroll (karaoke mode)"}
@@ -187,7 +187,7 @@ export default function LyricsControls({
             step={5}
             value={scrollSpeed}
             onChange={(e) => handleSpeedChange(Number.parseInt(e.target.value, 10))}
-            className="w-16 sm:w-20 accent-violet-500 h-1"
+            className="w-16 sm:w-20 accent-sky-500 h-1"
             title={`Scroll speed: ${scrollSpeed}px/s`}
           />
           <span className="text-xs text-slate-500">🐇</span>
@@ -199,7 +199,7 @@ export default function LyricsControls({
           onClick={toggleFocusMode}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
             isFocusMode
-              ? "bg-violet-600 hover:bg-violet-500 text-white"
+              ? "bg-sky-600 hover:bg-sky-500 text-white"
               : "bg-slate-700 hover:bg-slate-600 text-slate-300"
           }`}
           title={isFocusMode ? "Exit focus mode" : "Focus mode — hide distractions"}

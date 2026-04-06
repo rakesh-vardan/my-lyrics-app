@@ -20,7 +20,7 @@ export default function AlphabetIndex({
         onClick={() => onSelect("")}
         className={`w-8 h-8 rounded text-xs font-medium transition-colors ${
           !activeLetter
-            ? "bg-violet-600 text-white"
+            ? "bg-sky-600 text-white"
             : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 border border-slate-700"
         }`}
       >
@@ -32,7 +32,7 @@ export default function AlphabetIndex({
           onClick={() => onSelect(activeLetter === letter ? "" : letter)}
           className={`w-8 h-8 rounded text-sm font-medium transition-colors telugu-text ${
             activeLetter === letter
-              ? "bg-violet-600 text-white"
+              ? "bg-sky-600 text-white"
               : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 border border-slate-700"
           }`}
         >

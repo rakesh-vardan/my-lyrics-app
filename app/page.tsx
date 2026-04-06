@@ -223,7 +223,7 @@ export default function HomePage() {
 
   // --- Chip style helpers ---
   const chipBase = "px-3 py-1 rounded-full text-xs font-medium transition-colors border";
-  const chipActive = "bg-violet-600 border-violet-500 text-white";
+  const chipActive = "bg-sky-600 border-sky-500 text-white";
   const chipInactive = "bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600";
 
   return (
@@ -239,13 +239,13 @@ export default function HomePage() {
               <Link
                 key={song.id}
                 href={`/song/${song.id}`}
-                className="shrink-0 w-40 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-violet-500 rounded-xl p-3 transition-all"
+                className="shrink-0 w-40 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-sky-500 rounded-xl p-3 transition-all"
               >
                 <p className="text-sm font-semibold text-slate-100 telugu-text line-clamp-2 leading-snug">
                   {song.title_telugu}
                 </p>
                 {song.movie_name && (
-                  <p className="text-xs text-violet-400 mt-1 truncate">🎬 {song.movie_name}</p>
+                  <p className="text-xs text-sky-400 mt-1 truncate">🎬 {song.movie_name}</p>
                 )}
               </Link>
             ))}
@@ -260,7 +260,7 @@ export default function HomePage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search songs, lyrics, movies in Telugu or English..."
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 pr-10 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-base"
+          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 pr-10 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-base"
         />
         {searchLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 animate-spin text-sm">⟳</div>
@@ -302,7 +302,7 @@ export default function HomePage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               {Object.entries(SORT_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -339,8 +339,8 @@ export default function HomePage() {
               <select
                 value={selectedMovie}
                 onChange={(e) => setSelectedMovie(e.target.value)}
-                className={`bg-slate-800 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                  selectedMovie ? "border-violet-500 text-violet-300" : "border-slate-700 text-slate-400"
+                className={`bg-slate-800 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                  selectedMovie ? "border-sky-500 text-sky-300" : "border-slate-700 text-slate-400"
                 }`}
               >
                 <option value="">🎬 All Movies</option>
@@ -353,8 +353,8 @@ export default function HomePage() {
               <select
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
-                className={`bg-slate-800 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                  selectedTag ? "border-violet-500 text-violet-300" : "border-slate-700 text-slate-400"
+                className={`bg-slate-800 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                  selectedTag ? "border-sky-500 text-sky-300" : "border-slate-700 text-slate-400"
                 }`}
               >
                 <option value="">🏷️ All Tags</option>
@@ -375,7 +375,7 @@ export default function HomePage() {
             {activeFilters.map((label) => (
               <span
                 key={label}
-                className="text-xs bg-violet-600/20 border border-violet-500/40 text-violet-300 px-2.5 py-1 rounded-full"
+                className="text-xs bg-sky-600/20 border border-sky-500/40 text-sky-300 px-2.5 py-1 rounded-full"
               >
                 {label}
               </span>
@@ -433,7 +433,7 @@ export default function HomePage() {
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
-              className="mt-4 text-violet-400 hover:text-violet-300 text-sm underline"
+              className="mt-4 text-sky-400 hover:text-sky-300 text-sm underline"
             >
               Clear filters
             </button>
@@ -441,7 +441,7 @@ export default function HomePage() {
           {!query && !hasActiveFilters && (
             <Link
               href="/add"
-              className="mt-4 inline-block bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="mt-4 inline-block bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               + Add Song
             </Link>
@@ -488,7 +488,7 @@ export default function HomePage() {
         {visibleResults.map((song) => (
           <div
             key={song.id}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-violet-500 rounded-xl transition-all"
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-sky-500 rounded-xl transition-all"
           >
             <button
               onClick={() => toggleFavorite(song.id)}
@@ -509,10 +509,10 @@ export default function HomePage() {
                   )}
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     {song.movie_name && (
-                      <p className="text-xs text-violet-400">🎬 {song.movie_name}</p>
+                      <p className="text-xs text-sky-400">🎬 {song.movie_name}</p>
                     )}
                     {song.genre && (
-                      <span className="text-xs bg-violet-600/20 text-violet-300 px-2 py-0.5 rounded-full border border-violet-500/20">
+                      <span className="text-xs bg-sky-600/20 text-sky-300 px-2 py-0.5 rounded-full border border-sky-500/20">
                         {song.genre}
                       </span>
                     )}
@@ -528,7 +528,7 @@ export default function HomePage() {
                           }}
                           className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
                             selectedTag === tag
-                              ? "bg-violet-600 text-white"
+                              ? "bg-sky-600 text-white"
                               : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                           }`}
                         >
@@ -551,7 +551,7 @@ export default function HomePage() {
           {visibleResults.map((song) => (
             <div
               key={song.id}
-              className="relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-violet-500 rounded-xl p-3 transition-all"
+              className="relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-sky-500 rounded-xl p-3 transition-all"
             >
               <button
                 onClick={() => toggleFavorite(song.id)}
@@ -568,10 +568,10 @@ export default function HomePage() {
                   <p className="text-xs text-slate-400 truncate mt-0.5">{song.title_english}</p>
                 )}
                 {song.movie_name && (
-                  <p className="text-xs text-violet-400 mt-1.5 truncate">🎬 {song.movie_name}</p>
+                  <p className="text-xs text-sky-400 mt-1.5 truncate">🎬 {song.movie_name}</p>
                 )}
                 {song.genre && (
-                  <span className="inline-block mt-1.5 text-xs bg-violet-600/20 text-violet-300 px-1.5 py-0.5 rounded-full border border-violet-500/20">
+                  <span className="inline-block mt-1.5 text-xs bg-sky-600/20 text-sky-300 px-1.5 py-0.5 rounded-full border border-sky-500/20">
                     {song.genre}
                   </span>
                 )}
