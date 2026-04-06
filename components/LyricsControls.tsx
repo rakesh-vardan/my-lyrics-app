@@ -138,7 +138,7 @@ export default function LyricsControls({
   }, []);
 
   return (
-    <div ref={isFocusMode ? containerRef : undefined} className={isFocusMode ? "fixed inset-0 z-[100] bg-slate-900 overflow-y-auto p-6" : "">
+    <div ref={isFocusMode ? containerRef : undefined} className={isFocusMode ? "fixed inset-0 z-[100] bg-slate-900 overflow-y-auto p-6" : undefined}>
       {/* Controls bar */}
       <div className={`flex items-center gap-2 mb-5 flex-wrap ${isFocusMode ? "justify-center" : ""}`}>
         {/* Font size control */}
