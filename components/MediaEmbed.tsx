@@ -56,7 +56,7 @@ export default function MediaEmbed({ url }: { url: string }) {
       rel="noopener noreferrer"
       className="mt-4 inline-flex items-center gap-1.5 text-sm text-sky-400 hover:text-sky-300 transition-colors"
     >
-      🎵 Listen on external player ↗
+      ♪ Listen on external player ↗
     </a>
   );
 }

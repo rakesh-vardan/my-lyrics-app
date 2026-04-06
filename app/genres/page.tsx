@@ -18,7 +18,7 @@ const GENRE_ICONS: Record<string, string> = {
   Patriotic: "🇮🇳",
   Sad: "😢",
   Dance: "💃",
-  Other: "🎵",
+  Other: "♪",
 };
 
 export default async function GenresPage() {
@@ -63,7 +63,7 @@ export default async function GenresPage() {
         <span className="text-slate-300">Genres</span>
       </nav>
 
-      <h1 className="text-2xl font-bold mb-6 text-sky-400">🎵 Browse by Genre</h1>
+      <h1 className="text-2xl font-bold mb-6 text-sky-400">♪ Browse by Genre</h1>
 
       {/* Genre tiles overview */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
@@ -73,7 +73,7 @@ export default async function GenresPage() {
             href={`#genre-${genre}`}
             className="bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-sky-500 transition-colors text-center"
           >
-            <div className="text-3xl mb-2">{GENRE_ICONS[genre] || "🎵"}</div>
+            <div className="text-3xl mb-2">{GENRE_ICONS[genre] || "♪"}</div>
             <h3 className="text-sm font-semibold text-slate-200">{genre}</h3>
             <p className="text-xs text-slate-500 mt-1">
               {genreSongs.length} song{genreSongs.length !== 1 ? "s" : ""}
@@ -87,7 +87,7 @@ export default async function GenresPage() {
         {genresWithSongs.map(([genre, genreSongs]) => (
           <section key={genre} id={`genre-${genre}`}>
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-xl">{GENRE_ICONS[genre] || "🎵"}</span>
+              <span className="text-xl">{GENRE_ICONS[genre] || "♪"}</span>
               <h2 className="text-xl font-bold text-slate-100">{genre}</h2>
               <span className="text-xs bg-sky-600/20 text-sky-300 px-2 py-0.5 rounded-full border border-sky-500/20">
                 {genreSongs.length}
@@ -108,7 +108,7 @@ export default async function GenresPage() {
                       <span className="text-xs text-slate-400 truncate">{s.title_english}</span>
                     )}
                     {s.movie_name && (
-                      <span className="text-xs text-sky-400 truncate">🎬 {s.movie_name}</span>
+                      <span className="text-xs text-sky-400 truncate">▸ {s.movie_name}</span>
                     )}
                   </div>
                 </Link>
@@ -120,7 +120,7 @@ export default async function GenresPage() {
 
       {totalSongs === 0 && (
         <div className="text-center py-12 text-slate-400">
-          <div className="text-4xl mb-3">🎵</div>
+          <div className="text-4xl mb-3">♪</div>
           <p>No songs found. Add some songs first!</p>
         </div>
       )}

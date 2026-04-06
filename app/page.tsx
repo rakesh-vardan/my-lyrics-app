@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase, GENRES } from "@/lib/supabase";
@@ -19,13 +19,17 @@ const SORT_LABELS: Record<SortOption, string> = {
 };
 
 const PAGE_SIZE = 20;
+const SELECT_COLS = "id, title_telugu, title_english, movie_name, genre, year, singer, lyricist, music_director, media_url, tags, created_at";
 
 export default function HomePage() {
   const router = useRouter();
 
-  // All song metadata (no lyrics) loaded once
-  const [allSongs, setAllSongs] = useState<SongMeta[]>([]);
+  // Server-paginated song list
+  const [songs, setSongs] = useState<SongMeta[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [globalCount, setGlobalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Search
@@ -43,8 +47,14 @@ export default function HomePage() {
   const [selectedLetter, setSelectedLetter] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
 
-  // Pagination
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  // Filter dropdown options (loaded once, lightweight)
+  const [availableMovies, setAvailableMovies] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [availableGenres, setAvailableGenres] = useState<string[]>([]);
+
+  // Recently viewed songs (fetched by ID)
+  const [recentSongs, setRecentSongs] = useState<SongMeta[]>([]);
+
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // View mode: list or grid
@@ -64,25 +74,116 @@ export default function HomePage() {
     localStorage.setItem("lyrics-view-mode", v);
   };
 
-  // --- Initial load (metadata only, no lyrics) ---
+  // --- Load filter options once (lightweight: just the columns we need) ---
   useEffect(() => {
-    async function fetchSongs() {
+    async function loadFilterOptions() {
+      const [moviesRes, tagsRes, genresRes, countRes] = await Promise.all([
+        supabase.from("songs").select("movie_name").not("movie_name", "is", null),
+        supabase.from("songs").select("tags").not("tags", "is", null),
+        supabase.from("songs").select("genre").not("genre", "is", null),
+        supabase.from("songs").select("id", { count: "exact", head: true }),
+      ]);
+      if (moviesRes.data) {
+        const movies = [...new Set(moviesRes.data.map((r: { movie_name: string }) => r.movie_name))].sort((a, b) => a.localeCompare(b));
+        setAvailableMovies(movies);
+      }
+      if (tagsRes.data) {
+        const tags = [...new Set(tagsRes.data.flatMap((r: { tags: string[] }) => r.tags ?? []))].sort((a, b) => a.localeCompare(b));
+        setAvailableTags(tags);
+      }
+      if (genresRes.data) {
+        const dbGenres = new Set(genresRes.data.map((r: { genre: string }) => r.genre));
+        setAvailableGenres(GENRES.filter(g => dbGenres.has(g)));
+      }
+      if (countRes.count !== null) setGlobalCount(countRes.count);
+    }
+    loadFilterOptions();
+  }, []);
+
+  // --- Load recently viewed songs by ID ---
+  useEffect(() => {
+    if (recentIds.length === 0) { setRecentSongs([]); return; }
+    async function loadRecent() {
+      const { data } = await supabase
+        .from("songs")
+        .select(SELECT_COLS)
+        .in("id", recentIds);
+      if (data) {
+        const map = new Map((data as SongMeta[]).map(s => [s.id, s]));
+        setRecentSongs(recentIds.map(id => map.get(id)).filter(Boolean) as SongMeta[]);
+      }
+    }
+    loadRecent();
+  }, [recentIds]);
+
+  // --- Stable favorites key to avoid unnecessary re-fetches ---
+  const favoritesKey = showFavoritesOnly ? [...favorites].sort((a, b) => a.localeCompare(b)).join(",") : "";
+
+  // --- Refs for loadMore to avoid stale closures ---
+  const filtersRef = useRef({ showFavoritesOnly, favorites, selectedGenre, selectedMovie, selectedTag, selectedLetter, sortBy });
+  useEffect(() => {
+    filtersRef.current = { showFavoritesOnly, favorites, selectedGenre, selectedMovie, selectedTag, selectedLetter, sortBy };
+  });
+  const songsLengthRef = useRef(0);
+  useEffect(() => { songsLengthRef.current = songs.length; }, [songs.length]);
+  const loadingMoreRef = useRef(false);
+
+  // --- Server-side paginated fetch (resets on filter/sort change) ---
+  useEffect(() => {
+    // When search is active, data comes from the search API instead
+    if (debouncedQuery.trim()) return;
+
+    let cancelled = false;
+
+    async function fetchFirstPage() {
+      setLoading(true);
+      setError(null);
+
+      // Empty favorites → show nothing immediately
+      if (showFavoritesOnly && favorites.size === 0) {
+        setSongs([]);
+        setTotalCount(0);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const { data, error } = await supabase
+        let q = supabase
           .from("songs")
-          .select("id, title_telugu, title_english, movie_name, genre, year, singer, lyricist, music_director, media_url, tags, created_at")
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        setAllSongs((data as SongMeta[]) || []);
+          .select(SELECT_COLS, { count: "exact" });
+
+        if (showFavoritesOnly && favorites.size > 0) q = q.in("id", [...favorites]);
+        if (selectedGenre) q = q.eq("genre", selectedGenre);
+        if (selectedMovie) q = q.eq("movie_name", selectedMovie);
+        if (selectedTag) q = q.contains("tags", [selectedTag]);
+        if (selectedLetter) q = q.like("title_telugu", `${selectedLetter}%`);
+
+        switch (sortBy) {
+          case "recent": q = q.order("created_at", { ascending: false }); break;
+          case "title_telugu": q = q.order("title_telugu", { ascending: true }); break;
+          case "title_english": q = q.order("title_english", { ascending: true, nullsFirst: false }); break;
+          case "movie_name": q = q.order("movie_name", { ascending: true, nullsFirst: false }); break;
+        }
+
+        const { data, error: fetchError, count } = await q.range(0, PAGE_SIZE - 1);
+        if (cancelled) return;
+        if (fetchError) throw fetchError;
+
+        setSongs((data as SongMeta[]) ?? []);
+        if (count !== null) setTotalCount(count);
       } catch (err) {
+        if (cancelled) return;
         setError("Failed to load songs. Please check your Supabase configuration.");
         console.error(err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
-    fetchSongs();
-  }, []);
+
+    fetchFirstPage();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [favoritesKey, selectedGenre, selectedMovie, selectedTag, selectedLetter, sortBy, debouncedQuery]);
 
   // --- Debounce search query ---
   useEffect(() => {
@@ -117,86 +218,83 @@ export default function HomePage() {
       .finally(() => setSearchLoading(false));
   }, [debouncedQuery]);
 
-  // --- Derived filter options (always from allSongs, not searchResults) ---
-  const availableGenres = useMemo(
-    () => GENRES.filter((g) => allSongs.some((s) => s.genre === g)),
-    [allSongs]
-  );
-  const availableMovies = useMemo(
-    () =>
-      [...new Set(allSongs.map((s) => s.movie_name).filter(Boolean))]
-        .sort() as string[],
-    [allSongs]
-  );
-  const availableTags = useMemo(
-    () => [...new Set(allSongs.flatMap((s) => s.tags ?? []))].sort(),
-    [allSongs]
-  );
-
-  // --- Recently viewed (mapped to SongMeta, preserving order) ---
-  const recentSongs = useMemo(
-    () =>
-      recentIds
-        .map((id) => allSongs.find((s) => s.id === id))
-        .filter(Boolean) as SongMeta[],
-    [recentIds, allSongs]
-  );
-
-  // --- Filtered + sorted results ---
-  const results = useMemo(() => {
-    let base = searchResults ?? allSongs;
-
-    if (showFavoritesOnly) base = base.filter((s) => favorites.has(s.id));
-    if (selectedGenre) base = base.filter((s) => s.genre === selectedGenre);
-    if (selectedMovie) base = base.filter((s) => s.movie_name === selectedMovie);
-    if (selectedTag) base = base.filter((s) => s.tags?.includes(selectedTag));
-    if (selectedLetter) base = base.filter((s) => s.title_telugu.startsWith(selectedLetter));
-
-    // Skip sort when search is active — pgroonga already ranked by relevance
-    if (!debouncedQuery.trim()) {
-      return [...base].sort((a, b) => {
-        switch (sortBy) {
-          case "recent":
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          case "title_telugu":
-            return a.title_telugu.localeCompare(b.title_telugu, "te");
-          case "title_english":
-            return (a.title_english ?? "").localeCompare(b.title_english ?? "", "en");
-          case "movie_name":
-            return (a.movie_name ?? "").localeCompare(b.movie_name ?? "", "en");
-          default:
-            return 0;
-        }
-      });
-    }
+  // --- Client-side filtering for search results (search already returns ≤50 rows) ---
+  const filteredSearchResults = useMemo(() => {
+    if (!searchResults) return null;
+    let base = searchResults;
+    if (showFavoritesOnly) base = base.filter(s => favorites.has(s.id));
+    if (selectedGenre) base = base.filter(s => s.genre === selectedGenre);
+    if (selectedMovie) base = base.filter(s => s.movie_name === selectedMovie);
+    if (selectedTag) base = base.filter(s => s.tags?.includes(selectedTag));
+    if (selectedLetter) base = base.filter(s => s.title_telugu.startsWith(selectedLetter));
     return base;
-  }, [searchResults, allSongs, showFavoritesOnly, selectedGenre, selectedMovie, selectedTag, selectedLetter, sortBy, debouncedQuery, favorites]);
+  }, [searchResults, showFavoritesOnly, favorites, selectedGenre, selectedMovie, selectedTag, selectedLetter]);
 
-  const visibleResults = results.slice(0, visibleCount);
-  const hasMore = visibleCount < results.length;
+  // --- What to display ---
+  const isSearchActive = !!debouncedQuery.trim();
+  const displaySongs = isSearchActive ? (filteredSearchResults ?? []) : songs;
+  const displayTotal = isSearchActive ? (filteredSearchResults?.length ?? 0) : totalCount;
+  const hasMore = !isSearchActive && songs.length < totalCount;
 
-  // Reset pagination on any filter/search change
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [query, showFavoritesOnly, selectedGenre, selectedMovie, selectedTag, selectedLetter, sortBy]);
+  // --- Load more (infinite scroll — fetches next page from server) ---
+  const loadMore = useCallback(async () => {
+    if (loadingMoreRef.current) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+
+    try {
+      const f = filtersRef.current;
+      const from = songsLengthRef.current;
+
+      let q = supabase.from("songs").select(SELECT_COLS);
+
+      if (f.showFavoritesOnly && f.favorites.size > 0) q = q.in("id", [...f.favorites]);
+      if (f.selectedGenre) q = q.eq("genre", f.selectedGenre);
+      if (f.selectedMovie) q = q.eq("movie_name", f.selectedMovie);
+      if (f.selectedTag) q = q.contains("tags", [f.selectedTag]);
+      if (f.selectedLetter) q = q.like("title_telugu", `${f.selectedLetter}%`);
+
+      switch (f.sortBy) {
+        case "recent": q = q.order("created_at", { ascending: false }); break;
+        case "title_telugu": q = q.order("title_telugu", { ascending: true }); break;
+        case "title_english": q = q.order("title_english", { ascending: true, nullsFirst: false }); break;
+        case "movie_name": q = q.order("movie_name", { ascending: true, nullsFirst: false }); break;
+      }
+
+      const { data, error } = await q.range(from, from + PAGE_SIZE - 1);
+      if (error) throw error;
+      setSongs(prev => [...prev, ...((data as SongMeta[]) ?? [])]);
+    } catch (err) {
+      console.error("Failed to load more songs:", err);
+    } finally {
+      setLoadingMore(false);
+      loadingMoreRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // --- Infinite scroll sentinel ---
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel || !hasMore) return;
     const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) setVisibleCount((n) => n + PAGE_SIZE); },
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
       { rootMargin: "200px" }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore]);
+  }, [hasMore, loadMore]);
 
-  // --- Random song ---
-  const handleSurprise = () => {
-    if (allSongs.length === 0) return;
-    const pick = allSongs[Math.floor(Math.random() * allSongs.length)];
-    router.push(`/song/${pick.id}`);
+  // --- Random song (server-side pick) ---
+  const handleSurprise = async () => {
+    if (globalCount === 0) return;
+    const offset = Math.floor(Math.random() * globalCount);
+    const { data } = await supabase
+      .from("songs")
+      .select("id")
+      .order("created_at", { ascending: false })
+      .range(offset, offset);
+    if (data?.[0]) router.push(`/song/${data[0].id}`);
   };
 
   // --- Active filter state ---
@@ -245,7 +343,7 @@ export default function HomePage() {
                   {song.title_telugu}
                 </p>
                 {song.movie_name && (
-                  <p className="text-xs text-sky-400 mt-1 truncate">🎬 {song.movie_name}</p>
+                  <p className="text-xs text-sky-400 mt-1 truncate">▸ {song.movie_name}</p>
                 )}
               </Link>
             ))}
@@ -286,16 +384,16 @@ export default function HomePage() {
                 : "bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600"
             }`}
           >
-            {showFavoritesOnly ? "❤️ Favorites" : "🤍 Favorites"}
+            {showFavoritesOnly ? <><span className="text-red-400">♥</span> Favorites</> : <><span className="text-slate-400">♡</span> Favorites</>}
           </button>
 
           <button
             onClick={handleSurprise}
-            disabled={allSongs.length === 0}
+            disabled={globalCount === 0}
             className="px-4 py-2 rounded-lg text-sm font-medium transition-colors border bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
             title="Open a random song"
           >
-            🎲 Surprise Me
+            ⚄ Surprise Me
           </button>
 
           <div className="ml-auto">
@@ -343,7 +441,7 @@ export default function HomePage() {
                   selectedMovie ? "border-sky-500 text-sky-300" : "border-slate-700 text-slate-400"
                 }`}
               >
-                <option value="">🎬 All Movies</option>
+                <option value="">▸ All Movies</option>
                 {availableMovies.map((m) => (
                   <option key={m} value={m}>{m}</option>
                 ))}
@@ -414,7 +512,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {!loading && !error && results.length === 0 && (
+      {!loading && !error && displaySongs.length === 0 && (
         <div className="text-center py-12 text-slate-400">
           <div className="text-4xl mb-3">🔍</div>
           <p>
@@ -450,12 +548,12 @@ export default function HomePage() {
       )}
 
       {/* ── Count + View toggle ─────────────────────────── */}
-      {!loading && !error && allSongs.length > 0 && (
+      {!loading && !error && (globalCount > 0 || displaySongs.length > 0) && (
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-slate-500">
             {hasActiveFilters || debouncedQuery
-              ? `${results.length} of ${allSongs.length} songs`
-              : `${allSongs.length} song${allSongs.length !== 1 ? "s" : ""} in vault`}
+              ? `${displayTotal} of ${globalCount} songs`
+              : `${globalCount} song${globalCount !== 1 ? "s" : ""} in vault`}
           </span>
           <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-1 border border-slate-700">
             <button
@@ -485,7 +583,7 @@ export default function HomePage() {
       {/* ── Song list / grid ────────────────────────────── */}
       {viewMode === "list" ? (
       <div className="space-y-3">
-        {visibleResults.map((song) => (
+        {displaySongs.map((song) => (
           <div
             key={song.id}
             className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-sky-500 rounded-xl transition-all"
@@ -495,7 +593,7 @@ export default function HomePage() {
               className="pl-4 py-4 text-lg shrink-0 hover:scale-110 transition-transform"
               title={isFavorite(song.id) ? "Remove from favorites" : "Add to favorites"}
             >
-              {isFavorite(song.id) ? "❤️" : "🤍"}
+              {isFavorite(song.id) ? <span className="text-red-400">♥</span> : <span className="text-slate-500">♡</span>}
             </button>
 
             <Link href={`/song/${song.id}`} className="flex-1 min-w-0 p-4 pl-2">
@@ -509,7 +607,7 @@ export default function HomePage() {
                   )}
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     {song.movie_name && (
-                      <p className="text-xs text-sky-400">🎬 {song.movie_name}</p>
+                      <p className="text-xs text-sky-400">▸ {song.movie_name}</p>
                     )}
                     {song.genre && (
                       <span className="text-xs bg-sky-600/20 text-sky-300 px-2 py-0.5 rounded-full border border-sky-500/20">
@@ -548,7 +646,7 @@ export default function HomePage() {
       ) : (
         /* ── Grid view ─────────────────────────────────── */
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {visibleResults.map((song) => (
+          {displaySongs.map((song) => (
             <div
               key={song.id}
               className="relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-sky-500 rounded-xl p-3 transition-all"
@@ -558,7 +656,7 @@ export default function HomePage() {
                 className="absolute top-2 right-2 text-sm hover:scale-110 transition-transform"
                 title={isFavorite(song.id) ? "Remove from favorites" : "Add to favorites"}
               >
-                {isFavorite(song.id) ? "❤️" : "🤍"}
+                {isFavorite(song.id) ? <span className="text-red-400">♥</span> : <span className="text-slate-500">♡</span>}
               </button>
               <Link href={`/song/${song.id}`} className="block pr-6">
                 <p className="text-sm font-semibold text-slate-100 telugu-text line-clamp-2 leading-snug">
@@ -568,7 +666,7 @@ export default function HomePage() {
                   <p className="text-xs text-slate-400 truncate mt-0.5">{song.title_english}</p>
                 )}
                 {song.movie_name && (
-                  <p className="text-xs text-sky-400 mt-1.5 truncate">🎬 {song.movie_name}</p>
+                  <p className="text-xs text-sky-400 mt-1.5 truncate">▸ {song.movie_name}</p>
                 )}
                 {song.genre && (
                   <span className="inline-block mt-1.5 text-xs bg-sky-600/20 text-sky-300 px-1.5 py-0.5 rounded-full border border-sky-500/20">
@@ -583,10 +681,15 @@ export default function HomePage() {
 
       {/* Infinite scroll sentinel */}
       {hasMore && <div ref={sentinelRef} className="h-10" />}
+      {loadingMore && (
+        <div className="flex justify-center py-4">
+          <div className="h-6 w-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
 
-      {!loading && !error && results.length > 0 && (
+      {!loading && !error && displaySongs.length > 0 && (
         <p className="text-center text-slate-500 text-sm mt-6">
-          Showing {visibleResults.length} of {results.length}{query ? " matched" : ""}{hasActiveFilters ? " (filtered)" : ""}
+          Showing {displaySongs.length} of {displayTotal}{query ? " matched" : ""}{hasActiveFilters ? " (filtered)" : ""}
         </p>
       )}
     </div>

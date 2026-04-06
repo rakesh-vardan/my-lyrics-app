@@ -39,7 +39,7 @@ export default async function MoviesPage() {
         <span className="text-slate-300">Movies</span>
       </nav>
 
-      <h1 className="text-2xl font-bold mb-6 text-sky-400">🎬 Browse by Movie</h1>
+      <h1 className="text-2xl font-bold mb-6 text-sky-400">▸ Browse by Movie</h1>
 
       <p className="text-sm text-slate-500 mb-4">
         {sortedMovies.length} movie{sortedMovies.length !== 1 ? "s" : ""} in vault
@@ -77,7 +77,7 @@ export default async function MoviesPage() {
 
       {sortedMovies.length === 0 && (
         <div className="text-center py-12 text-slate-400">
-          <div className="text-4xl mb-3">🎬</div>
+          <div className="text-4xl mb-3">▸</div>
           <p>No movies found. Add some songs first!</p>
         </div>
       )}

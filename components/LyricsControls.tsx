@@ -25,6 +25,7 @@ export default function LyricsControls({
   const rafRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
   const speedRef = useRef(DEFAULT_SCROLL_SPEED);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Restore persisted font size preference
   useEffect(() => {
@@ -75,7 +76,8 @@ export default function LyricsControls({
       if (lastTimeRef.current === 0) lastTimeRef.current = timestamp;
       const elapsed = (timestamp - lastTimeRef.current) / 1000;
       lastTimeRef.current = timestamp;
-      window.scrollBy(0, speedRef.current * elapsed);
+      const target = containerRef.current ?? window;
+      target.scrollBy(0, speedRef.current * elapsed);
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -136,7 +138,7 @@ export default function LyricsControls({
   }, []);
 
   return (
-    <div className={isFocusMode ? "fixed inset-0 z-[100] bg-slate-900 overflow-y-auto p-6" : ""}>
+    <div ref={isFocusMode ? containerRef : undefined} className={isFocusMode ? "fixed inset-0 z-[100] bg-slate-900 overflow-y-auto p-6" : "">
       {/* Controls bar */}
       <div className={`flex items-center gap-2 mb-5 flex-wrap ${isFocusMode ? "justify-center" : ""}`}>
         {/* Font size control */}

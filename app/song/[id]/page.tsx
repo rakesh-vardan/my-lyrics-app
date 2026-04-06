@@ -82,7 +82,7 @@ export default async function SongPage({ params }: PageProps) {
           )}
           {song.movie_name && (
             <p className="text-sky-400 mt-2 flex items-center gap-1">
-              🎬 <span>{song.movie_name}</span>
+              ▸ <span>{song.movie_name}</span>
             </p>
           )}
           {song.year && (
