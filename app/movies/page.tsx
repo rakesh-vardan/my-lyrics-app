@@ -1,23 +1,20 @@
-import { supabase } from "@/lib/supabase";
+import { getSongsForMovies } from "@/lib/db";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Browse by Movie | Telugu Lyrics Vault",
 };
 
 export default async function MoviesPage() {
-  const { data: songs } = await supabase
-    .from("songs")
-    .select("id, title_telugu, title_english, movie_name")
-    .order("movie_name", { ascending: true });
+  const songs = await getSongsForMovies();
 
   // Group songs by movie
   const movieMap = new Map<string, { count: number; songs: { id: string; title_telugu: string; title_english: string | null }[] }>();
 
-  for (const song of songs ?? []) {
+  for (const song of songs) {
     const movie = song.movie_name || "Unknown / Independent";
     if (!movieMap.has(movie)) {
       movieMap.set(movie, { count: 0, songs: [] });

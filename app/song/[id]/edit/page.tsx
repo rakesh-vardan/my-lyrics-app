@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { supabase, GENRES } from "@/lib/supabase";
+import { GENRES } from "@/lib/types";
 
 export default function EditSongPage() {
   const router = useRouter();
@@ -12,17 +12,28 @@ export default function EditSongPage() {
   const id = params.id as string;
 
   const [authenticated, setAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
-  // Restore session auth
+  // The admin cookie is httpOnly, so ask the server whether we're unlocked.
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem("adminAuth") === "true") setAuthenticated(true);
-    } catch {}
+    let cancelled = false;
+    fetch("/api/auth")
+      .then((res) => (res.ok ? res.json() : { authenticated: false }))
+      .then((data) => {
+        if (!cancelled) setAuthenticated(Boolean(data.authenticated));
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setCheckingAuth(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const [form, setForm] = useState({
@@ -41,12 +52,13 @@ export default function EditSongPage() {
 
   useEffect(() => {
     async function fetchSong() {
-      const { data, error } = await supabase
-        .from("songs")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (data) {
+      try {
+        const res = await fetch(`/api/songs/${id}`);
+        if (!res.ok) {
+          setFetchError(true);
+          return;
+        }
+        const data = await res.json();
         setForm({
           title_telugu: data.title_telugu,
           title_english: data.title_english || "",
@@ -60,10 +72,11 @@ export default function EditSongPage() {
           lyrics: data.lyrics,
           tags: data.tags ? data.tags.join(", ") : "",
         });
-      } else {
+      } catch {
         setFetchError(true);
+      } finally {
+        setFetching(false);
       }
-      setFetching(false);
     }
     fetchSong();
   }, [id]);
@@ -78,15 +91,18 @@ export default function EditSongPage() {
     if (res.ok) {
       setAuthenticated(true);
       setAuthError("");
-      try {
-        sessionStorage.setItem("adminAuth", "true");
-        sessionStorage.setItem("adminToken", password);
-      } catch {}
+      setPassword("");
     } else if (res.status === 429) {
       setAuthError("Too many attempts. Try again in 15 minutes.");
     } else {
       setAuthError("Invalid password. Please try again.");
     }
+  };
+
+  const handleLock = async () => {
+    await fetch("/api/auth", { method: "DELETE" });
+    setAuthenticated(false);
+    toast.success("Locked. Password required again.");
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -97,9 +113,10 @@ export default function EditSongPage() {
       ? form.tags.split(",").map((t) => t.trim()).filter(Boolean)
       : [];
 
-    const { error } = await supabase
-      .from("songs")
-      .update({
+    const res = await fetch(`/api/songs/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         title_telugu: form.title_telugu,
         title_english: form.title_english || null,
         movie_name: form.movie_name || null,
@@ -110,29 +127,39 @@ export default function EditSongPage() {
         music_director: form.music_director || null,
         media_url: form.media_url || null,
         lyrics: form.lyrics,
-        tags: tags.length > 0 ? tags : null,
-      })
-      .eq("id", id);
+        tags,
+      }),
+    });
 
     setLoading(false);
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Song updated successfully!");
-      // Invalidate caches
-      try { sessionStorage.removeItem("lyrics-filter-options"); } catch {}
-      fetch("/api/revalidate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-revalidate-token": sessionStorage.getItem("adminToken") ?? "",
-        },
-        body: JSON.stringify({ songId: id }),
-      }).catch(() => {});
-      setTimeout(() => router.push(`/song/${id}`), 1200);
+    if (res.status === 401) {
+      setAuthenticated(false);
+      toast.error("Session expired. Please unlock again.");
+      return;
     }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.error ?? "Failed to update the song.");
+      return;
+    }
+
+    toast.success("Song updated successfully!");
+    try { sessionStorage.removeItem("lyrics-filter-options"); } catch {}
+    fetch("/api/revalidate", {
+      method: "POST",
+      body: JSON.stringify({ songId: id }),
+    }).catch(() => {});
+    setTimeout(() => router.push(`/song/${id}`), 1200);
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-16 text-slate-400">
+        Checking session…
+      </div>
+    );
+  }
 
   if (!authenticated) {
     return (
@@ -208,7 +235,16 @@ export default function EditSongPage() {
         ← Back to song
       </Link>
 
-      <h1 className="text-2xl font-bold mb-6 mt-4 text-sky-400">✏️ Edit Song</h1>
+      <div className="flex items-center justify-between gap-3 mb-6 mt-4">
+        <h1 className="text-2xl font-bold text-sky-400">✏️ Edit Song</h1>
+        <button
+          onClick={handleLock}
+          className="text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-500 bg-slate-800 px-3 py-1.5 rounded-lg transition-colors"
+          title="Lock this device — password required again"
+        >
+          🔒 Lock
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-5 bg-slate-800 border border-slate-700 rounded-2xl p-6">
         <div>

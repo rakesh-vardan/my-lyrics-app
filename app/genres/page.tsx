@@ -1,9 +1,11 @@
-import { supabase } from "@/lib/supabase";
-import { GENRES } from "@/lib/supabase";
+import { getSongsForGenres } from "@/lib/db";
+import { GENRES } from "@/lib/types";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const revalidate = 60;
+// Read straight from the database on each request: a song added a second ago
+// should appear immediately, and the query is a single indexed scan.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Browse by Genre | Telugu Lyrics Vault",
@@ -22,10 +24,7 @@ const GENRE_ICONS: Record<string, string> = {
 };
 
 export default async function GenresPage() {
-  const { data: songs } = await supabase
-    .from("songs")
-    .select("id, title_telugu, title_english, genre, movie_name")
-    .order("title_telugu", { ascending: true });
+  const songs = await getSongsForGenres();
 
   // Group songs by genre
   const genreMap = new Map<string, { id: string; title_telugu: string; title_english: string | null; movie_name: string | null }[]>();
@@ -35,7 +34,7 @@ export default async function GenresPage() {
     genreMap.set(g, []);
   }
 
-  for (const song of songs ?? []) {
+  for (const song of songs) {
     const genre = song.genre || "Other";
     if (!genreMap.has(genre)) {
       genreMap.set(genre, []);
@@ -53,7 +52,7 @@ export default async function GenresPage() {
     .filter(([, songs]) => songs.length > 0)
     .sort((a, b) => b[1].length - a[1].length);
 
-  const totalSongs = (songs ?? []).length;
+  const totalSongs = songs.length;
 
   return (
     <div>

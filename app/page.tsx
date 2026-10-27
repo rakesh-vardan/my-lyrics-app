@@ -3,8 +3,8 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase, GENRES } from "@/lib/supabase";
-import type { SongMeta } from "@/lib/supabase";
+import { GENRES } from "@/lib/types";
+import type { SongMeta } from "@/lib/types";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import AlphabetIndex from "@/components/AlphabetIndex";
@@ -19,7 +19,32 @@ const SORT_LABELS: Record<SortOption, string> = {
 };
 
 const PAGE_SIZE = 20;
-const SELECT_COLS = "id, title_telugu, title_english, movie_name, genre, year, singer, lyricist, music_director, media_url, tags, created_at";
+
+interface ListParams {
+  ids?: string[];
+  genre?: string;
+  movie?: string;
+  tag?: string;
+  letter?: string;
+  sort?: SortOption;
+  limit?: number;
+  offset?: number;
+}
+
+/** Builds the /api/songs URL for a filter/sort/page combination. */
+function listUrl(p: ListParams): string {
+  const qs = new URLSearchParams();
+  if (p.ids && p.ids.length > 0) qs.set("ids", p.ids.join(","));
+  if (p.genre) qs.set("genre", p.genre);
+  if (p.movie) qs.set("movie", p.movie);
+  if (p.tag) qs.set("tag", p.tag);
+  if (p.letter) qs.set("letter", p.letter);
+  if (p.sort) qs.set("sort", p.sort);
+  if (p.limit !== undefined) qs.set("limit", String(p.limit));
+  if (p.offset !== undefined) qs.set("offset", String(p.offset));
+  const query = qs.toString();
+  return query ? `/api/songs?${query}` : "/api/songs";
+}
 
 export default function HomePage() {
   const router = useRouter();
@@ -95,32 +120,29 @@ export default function HomePage() {
     } catch { /* ignore parse errors */ }
 
     async function loadFilterOptions() {
-      const [moviesRes, tagsRes, genresRes, countRes] = await Promise.all([
-        supabase.from("songs").select("movie_name").not("movie_name", "is", null),
-        supabase.from("songs").select("tags").not("tags", "is", null),
-        supabase.from("songs").select("genre").not("genre", "is", null),
-        supabase.from("songs").select("id", { count: "exact", head: true }),
-      ]);
-      const movies = moviesRes.data
-        ? [...new Set(moviesRes.data.map((r: { movie_name: string }) => r.movie_name))].sort((a, b) => a.localeCompare(b))
-        : [];
-      const tags = tagsRes.data
-        ? [...new Set(tagsRes.data.flatMap((r: { tags: string[] }) => r.tags ?? []))].sort((a, b) => a.localeCompare(b))
-        : [];
-      const genres = genresRes.data
-        ? GENRES.filter(g => new Set(genresRes.data.map((r: { genre: string }) => r.genre)).has(g))
-        : [];
-      const count = countRes.count ?? 0;
-
-      setAvailableMovies(movies);
-      setAvailableTags(tags);
-      setAvailableGenres(genres);
-      setGlobalCount(count);
-
-      // Persist to sessionStorage
       try {
-        sessionStorage.setItem(FILTER_CACHE_KEY, JSON.stringify({ movies, tags, genres, count, ts: Date.now() }));
-      } catch { /* quota exceeded — ignore */ }
+        const res = await fetch("/api/filters");
+        if (!res.ok) throw new Error(`Request failed with ${res.status}`);
+        const data = await res.json();
+
+        const movies: string[] = data.movies ?? [];
+        const tags: string[] = data.tags ?? [];
+        const present: string[] = data.genres ?? [];
+        const genres = GENRES.filter((g) => present.includes(g));
+        const count: number = data.total ?? 0;
+
+        setAvailableMovies(movies);
+        setAvailableTags(tags);
+        setAvailableGenres(genres);
+        setGlobalCount(count);
+
+        // Persist to sessionStorage
+        try {
+          sessionStorage.setItem(FILTER_CACHE_KEY, JSON.stringify({ movies, tags, genres, count, ts: Date.now() }));
+        } catch { /* quota exceeded — ignore */ }
+      } catch (err) {
+        console.error("Failed to load filter options:", err);
+      }
     }
     loadFilterOptions();
   }, []);
@@ -128,17 +150,21 @@ export default function HomePage() {
   // --- Load recently viewed songs by ID ---
   useEffect(() => {
     if (recentIds.length === 0) { setRecentSongs([]); return; }
+    let cancelled = false;
     async function loadRecent() {
-      const { data } = await supabase
-        .from("songs")
-        .select(SELECT_COLS)
-        .in("id", recentIds);
-      if (data) {
+      try {
+        const res = await fetch(listUrl({ ids: recentIds, limit: recentIds.length }));
+        if (!res.ok) return;
+        const { songs: data } = await res.json();
+        if (cancelled) return;
         const map = new Map((data as SongMeta[]).map(s => [s.id, s]));
         setRecentSongs(recentIds.map(id => map.get(id)).filter(Boolean) as SongMeta[]);
+      } catch {
+        // The carousel is a convenience; ignore failures.
       }
     }
     loadRecent();
+    return () => { cancelled = true; };
   }, [recentIds]);
 
   // --- Stable favorites key to avoid unnecessary re-fetches ---
@@ -173,32 +199,27 @@ export default function HomePage() {
       }
 
       try {
-        let q = supabase
-          .from("songs")
-          .select(SELECT_COLS, { count: "exact" });
-
-        if (showFavoritesOnly && favorites.size > 0) q = q.in("id", [...favorites]);
-        if (selectedGenre) q = q.eq("genre", selectedGenre);
-        if (selectedMovie) q = q.eq("movie_name", selectedMovie);
-        if (selectedTag) q = q.contains("tags", [selectedTag]);
-        if (selectedLetter) q = q.like("title_telugu", `${selectedLetter}%`);
-
-        switch (sortBy) {
-          case "recent": q = q.order("created_at", { ascending: false }); break;
-          case "title_telugu": q = q.order("title_telugu", { ascending: true }); break;
-          case "title_english": q = q.order("title_english", { ascending: true, nullsFirst: false }); break;
-          case "movie_name": q = q.order("movie_name", { ascending: true, nullsFirst: false }); break;
-        }
-
-        const { data, error: fetchError, count } = await q.range(0, PAGE_SIZE - 1);
+        const res = await fetch(listUrl({
+          ids: showFavoritesOnly && favorites.size > 0 ? [...favorites] : undefined,
+          genre: selectedGenre || undefined,
+          movie: selectedMovie || undefined,
+          tag: selectedTag || undefined,
+          letter: selectedLetter || undefined,
+          sort: sortBy,
+          limit: PAGE_SIZE,
+          offset: 0,
+        }));
         if (cancelled) return;
-        if (fetchError) throw fetchError;
+        if (!res.ok) throw new Error(`Request failed with ${res.status}`);
+
+        const { songs: data, total } = await res.json();
+        if (cancelled) return;
 
         setSongs((data as SongMeta[]) ?? []);
-        if (count !== null) setTotalCount(count);
+        if (typeof total === "number") setTotalCount(total);
       } catch (err) {
         if (cancelled) return;
-        setError("Failed to load songs. Please check your Supabase configuration.");
+        setError("Failed to load songs. Please try again in a moment.");
         console.error(err);
       } finally {
         if (!cancelled) setLoading(false);
@@ -271,23 +292,19 @@ export default function HomePage() {
       const f = filtersRef.current;
       const from = songsLengthRef.current;
 
-      let q = supabase.from("songs").select(SELECT_COLS);
+      const res = await fetch(listUrl({
+        ids: f.showFavoritesOnly && f.favorites.size > 0 ? [...f.favorites] : undefined,
+        genre: f.selectedGenre || undefined,
+        movie: f.selectedMovie || undefined,
+        tag: f.selectedTag || undefined,
+        letter: f.selectedLetter || undefined,
+        sort: f.sortBy,
+        limit: PAGE_SIZE,
+        offset: from,
+      }));
+      if (!res.ok) throw new Error(`Request failed with ${res.status}`);
 
-      if (f.showFavoritesOnly && f.favorites.size > 0) q = q.in("id", [...f.favorites]);
-      if (f.selectedGenre) q = q.eq("genre", f.selectedGenre);
-      if (f.selectedMovie) q = q.eq("movie_name", f.selectedMovie);
-      if (f.selectedTag) q = q.contains("tags", [f.selectedTag]);
-      if (f.selectedLetter) q = q.like("title_telugu", `${f.selectedLetter}%`);
-
-      switch (f.sortBy) {
-        case "recent": q = q.order("created_at", { ascending: false }); break;
-        case "title_telugu": q = q.order("title_telugu", { ascending: true }); break;
-        case "title_english": q = q.order("title_english", { ascending: true, nullsFirst: false }); break;
-        case "movie_name": q = q.order("movie_name", { ascending: true, nullsFirst: false }); break;
-      }
-
-      const { data, error } = await q.range(from, from + PAGE_SIZE - 1);
-      if (error) throw error;
+      const { songs: data } = await res.json();
       setSongs(prev => [...prev, ...((data as SongMeta[]) ?? [])]);
     } catch (err) {
       console.error("Failed to load more songs:", err);
@@ -313,13 +330,14 @@ export default function HomePage() {
   // --- Random song (server-side pick) ---
   const handleSurprise = async () => {
     if (globalCount === 0) return;
-    const offset = Math.floor(Math.random() * globalCount);
-    const { data } = await supabase
-      .from("songs")
-      .select("id")
-      .order("created_at", { ascending: false })
-      .range(offset, offset);
-    if (data?.[0]) router.push(`/song/${data[0].id}`);
+    try {
+      const res = await fetch("/api/random");
+      if (!res.ok) return;
+      const { id } = await res.json();
+      if (id) router.push(`/song/${id}`);
+    } catch {
+      // Ignore — the button just does nothing.
+    }
   };
 
   // --- Active filter state ---

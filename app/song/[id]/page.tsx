@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getMovieSiblingIds, getSongById } from "@/lib/db";
 import CopyButton from "@/components/CopyButton";
 import FavoriteButton from "@/components/FavoriteButton";
 import LyricsControls from "@/components/LyricsControls";
@@ -9,7 +9,9 @@ import SwipeNavigator from "@/components/SwipeNavigator";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const revalidate = 120; // Re-generate at most every 2 minutes
+// Rendered per request so an edited lyric shows up immediately; getSongById is
+// wrapped in React cache(), so metadata + page share one query.
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -17,17 +19,17 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const { data } = await supabase.from("songs").select("title_telugu, title_english").eq("id", id).single();
+  const song = await getSongById(id);
   return {
-    title: data ? `${data.title_telugu} | Telugu Lyrics Vault` : "Song | Telugu Lyrics Vault",
+    title: song ? `${song.title_telugu} | Telugu Lyrics Vault` : "Song | Telugu Lyrics Vault",
   };
 }
 
 export default async function SongPage({ params }: PageProps) {
   const { id } = await params;
-  const { data: song, error } = await supabase.from("songs").select("*").eq("id", id).single();
+  const song = await getSongById(id);
 
-  if (error || !song) {
+  if (!song) {
     notFound();
   }
 
@@ -36,17 +38,10 @@ export default async function SongPage({ params }: PageProps) {
   let nextId: string | null = null;
 
   if (song.movie_name) {
-    const { data: siblings } = await supabase
-      .from("songs")
-      .select("id")
-      .eq("movie_name", song.movie_name)
-      .order("created_at", { ascending: true });
-
-    if (siblings && siblings.length > 1) {
-      const idx = siblings.findIndex((s) => s.id === id);
-      if (idx > 0) prevId = siblings[idx - 1].id;
-      if (idx < siblings.length - 1) nextId = siblings[idx + 1].id;
-    }
+    const siblings = await getMovieSiblingIds(song.movie_name);
+    const idx = siblings.indexOf(id);
+    if (idx > 0) prevId = siblings[idx - 1];
+    if (idx >= 0 && idx < siblings.length - 1) nextId = siblings[idx + 1];
   }
 
   return (

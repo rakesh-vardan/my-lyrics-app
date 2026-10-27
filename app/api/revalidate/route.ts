@@ -1,41 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { timingSafeEqual } from "crypto";
+import { isAuthenticated } from "@/lib/auth";
 
-const SECRET = process.env.ADMIN_PASSWORD ?? "";
+export const dynamic = "force-dynamic";
 
-function isAuthorized(request: NextRequest): boolean {
-  const token = request.headers.get("x-revalidate-token") ?? "";
-  if (!SECRET || !token) return false;
-  try {
-    const a = Buffer.from(SECRET, "utf8");
-    const b = Buffer.from(token, "utf8");
-    return a.length === b.length && timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
-}
-
+/**
+ * Clears the cached browse pages after a write. The admin cookie is the same
+ * one that authorises /api/songs, so the client no longer has to keep the
+ * password in sessionStorage to call this.
+ */
 export async function POST(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  if (!isAuthenticated(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json().catch(() => ({}));
-  const songId = body.songId as string | undefined;
+  const songId = typeof body?.songId === "string" ? body.songId : undefined;
 
-  // Revalidate global listing pages
-  revalidatePath("/movies");
-  revalidatePath("/genres");
-
-  // Revalidate specific song page if ID provided
+  const paths = ["/", "/movies", "/genres"];
+  for (const path of paths) revalidatePath(path);
   if (songId) {
     revalidatePath(`/song/${songId}`);
+    paths.push(`/song/${songId}`);
   }
 
-  // Clear client-side filter cache hint
-  return NextResponse.json({
-    revalidated: true,
-    paths: ["/movies", "/genres", ...(songId ? [`/song/${songId}`] : [])],
-  });
+  return NextResponse.json({ revalidated: true, paths });
 }
