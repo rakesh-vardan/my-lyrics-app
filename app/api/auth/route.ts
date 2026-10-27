@@ -1,44 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { timingSafeEqual, createHash } from "crypto";
+import {
+  SESSION_COOKIE,
+  clearFailures,
+  createSessionToken,
+  getClientIp,
+  isAuthenticated,
+  isRateLimited,
+  recordFailure,
+  sessionCookieOptions,
+  verifyPassword,
+} from "@/lib/auth";
 
-// In-memory rate limiter: 5 failures per 15 minutes per IP.
-// Note: resets on server restart. For production use Redis instead.
-const MAX_FAILURES = 5;
-const WINDOW_MS = 15 * 60 * 1000;
+export const dynamic = "force-dynamic";
 
-interface RateRecord { failures: number; windowStart: number }
-const rateLimitMap = new Map<string, RateRecord>();
-
-function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const rec = rateLimitMap.get(ip);
-  if (!rec || now - rec.windowStart > WINDOW_MS) {
-    rateLimitMap.set(ip, { failures: 0, windowStart: now });
-    return false;
-  }
-  return rec.failures >= MAX_FAILURES;
-}
-
-function recordFailure(ip: string): void {
-  const now = Date.now();
-  const rec = rateLimitMap.get(ip);
-  if (!rec || now - rec.windowStart > WINDOW_MS) {
-    rateLimitMap.set(ip, { failures: 1, windowStart: now });
-  } else {
-    rec.failures++;
-  }
-}
-
-function clearFailures(ip: string): void {
-  rateLimitMap.delete(ip);
+/** Lets the UI restore its unlocked state on reload (the cookie is httpOnly). */
+export async function GET(req: NextRequest) {
+  return NextResponse.json({ authenticated: isAuthenticated(req) });
 }
 
 export async function POST(req: NextRequest) {
@@ -51,22 +28,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { password } = await req.json();
-  const adminPassword = process.env.ADMIN_PASSWORD;
-
-  if (!adminPassword) {
+  if (!process.env.ADMIN_PASSWORD) {
     return NextResponse.json({ error: "Admin password not configured" }, { status: 500 });
   }
 
-  // Timing-safe comparison to prevent timing attacks
-  const inputHash = createHash("sha256").update(String(password)).digest();
-  const adminHash = createHash("sha256").update(adminPassword).digest();
-
-  if (inputHash.length === adminHash.length && timingSafeEqual(inputHash, adminHash)) {
-    clearFailures(ip);
-    return NextResponse.json({ success: true });
+  let password: unknown;
+  try {
+    ({ password } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  recordFailure(ip);
-  return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  if (!verifyPassword(password)) {
+    recordFailure(ip);
+    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+  }
+
+  clearFailures(ip);
+  const res = NextResponse.json({ success: true });
+  res.cookies.set(SESSION_COOKIE, createSessionToken(), sessionCookieOptions);
+  return res;
+}
+
+/** Lock the session again (used by the "Lock" button). */
+export async function DELETE() {
+  const res = NextResponse.json({ success: true });
+  res.cookies.set(SESSION_COOKIE, "", { ...sessionCookieOptions, maxAge: 0 });
+  return res;
 }

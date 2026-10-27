@@ -32,7 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-!.env.local.example
+!.env.example
 
 # vercel
 .vercel
@@ -47,3 +47,4 @@ next-env.d.ts
 # Serwist generated service worker
 public/sw.js
 public/swe-worker-*.js
+.neon

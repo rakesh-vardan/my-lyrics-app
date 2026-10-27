@@ -3,8 +3,8 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase, GENRES } from "@/lib/supabase";
-import type { SongMeta } from "@/lib/supabase";
+import { GENRES } from "@/lib/types";
+import type { SongMeta } from "@/lib/types";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 
@@ -66,14 +66,12 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchSongs() {
       try {
-        const { data, error } = await supabase
-          .from("songs")
-          .select("id, title_telugu, title_english, movie_name, genre, tags, created_at")
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        setAllSongs((data as SongMeta[]) || []);
+        const res = await fetch("/api/songs");
+        if (!res.ok) throw new Error(`Request failed with ${res.status}`);
+        const data = await res.json();
+        setAllSongs(Array.isArray(data) ? (data as SongMeta[]) : []);
       } catch (err) {
-        setError("Failed to load songs. Please check your Supabase configuration.");
+        setError("Failed to load songs. Please try again in a moment.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -88,7 +86,7 @@ export default function HomePage() {
     return () => clearTimeout(id);
   }, [query]);
 
-  // --- Server-side pgroonga search ---
+  // --- Server-side trigram search ---
   useEffect(() => {
     if (!debouncedQuery.trim()) {
       setSearchResults(null);
@@ -149,7 +147,7 @@ export default function HomePage() {
     if (selectedMovie) base = base.filter((s) => s.movie_name === selectedMovie);
     if (selectedTag) base = base.filter((s) => s.tags?.includes(selectedTag));
 
-    // Skip sort when search is active — pgroonga already ranked by relevance
+    // Skip sort when search is active — the API already ranked by relevance
     if (!debouncedQuery.trim()) {
       return [...base].sort((a, b) => {
         switch (sortBy) {

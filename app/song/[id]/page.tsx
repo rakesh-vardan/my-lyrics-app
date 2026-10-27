@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSongById } from "@/lib/db";
 import CopyButton from "@/components/CopyButton";
 import FavoriteButton from "@/components/FavoriteButton";
 import LyricsControls from "@/components/LyricsControls";
@@ -15,17 +15,17 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const { data } = await supabase.from("songs").select("title_telugu, title_english").eq("id", id).single();
+  const song = await getSongById(id);
   return {
-    title: data ? `${data.title_telugu} | Telugu Lyrics Vault` : "Song | Telugu Lyrics Vault",
+    title: song ? `${song.title_telugu} | Telugu Lyrics Vault` : "Song | Telugu Lyrics Vault",
   };
 }
 
 export default async function SongPage({ params }: PageProps) {
   const { id } = await params;
-  const { data: song, error } = await supabase.from("songs").select("*").eq("id", id).single();
+  const song = await getSongById(id);
 
-  if (error || !song) {
+  if (!song) {
     notFound();
   }
 
