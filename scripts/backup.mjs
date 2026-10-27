@@ -11,8 +11,9 @@ if (!url) {
 
 const sql = neon(url);
 const rows = await sql`
-  SELECT id, title_telugu, title_english, movie_name, genre, lyrics,
-         to_jsonb(tags) AS tags, created_at
+  SELECT id, title_telugu, title_english, movie_name, genre, year, singer,
+         lyricist, music_director, media_url, lyrics, to_jsonb(tags) AS tags,
+         created_at
   FROM songs
   ORDER BY created_at
 `;

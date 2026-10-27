@@ -39,24 +39,37 @@ for (const row of rows) {
     continue;
   }
   await sql`
-    INSERT INTO songs (id, title_telugu, title_english, movie_name, genre, lyrics, tags, created_at)
+    INSERT INTO songs (
+      id, title_telugu, title_english, movie_name, genre, year, singer,
+      lyricist, music_director, media_url, lyrics, tags, created_at
+    )
     VALUES (
       COALESCE(${row.id ?? null}::uuid, gen_random_uuid()),
       ${row.title_telugu},
       ${row.title_english ?? null},
       ${row.movie_name ?? null},
       ${row.genre ?? null},
+      ${row.year ?? null},
+      ${row.singer ?? null},
+      ${row.lyricist ?? null},
+      ${row.music_director ?? null},
+      ${row.media_url ?? null},
       ${row.lyrics},
       ${toPgArray(row.tags)}::text[],
       COALESCE(${row.created_at ?? null}::timestamptz, NOW())
     )
     ON CONFLICT (id) DO UPDATE SET
-      title_telugu  = EXCLUDED.title_telugu,
-      title_english = EXCLUDED.title_english,
-      movie_name    = EXCLUDED.movie_name,
-      genre         = EXCLUDED.genre,
-      lyrics        = EXCLUDED.lyrics,
-      tags          = EXCLUDED.tags
+      title_telugu   = EXCLUDED.title_telugu,
+      title_english  = EXCLUDED.title_english,
+      movie_name     = EXCLUDED.movie_name,
+      genre          = EXCLUDED.genre,
+      year           = EXCLUDED.year,
+      singer         = EXCLUDED.singer,
+      lyricist       = EXCLUDED.lyricist,
+      music_director = EXCLUDED.music_director,
+      media_url      = EXCLUDED.media_url,
+      lyrics         = EXCLUDED.lyrics,
+      tags           = EXCLUDED.tags
   `;
   imported += 1;
 }

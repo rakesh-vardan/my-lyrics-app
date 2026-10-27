@@ -16,7 +16,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    return NextResponse.json(await searchSongs(q));
+    return NextResponse.json(await searchSongs(q), {
+      headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" },
+    });
   } catch (error) {
     console.error("GET /api/search failed", error);
     return NextResponse.json({ error: "Search is temporarily unavailable." }, { status: 500 });

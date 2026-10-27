@@ -40,7 +40,7 @@ export default function FavoriteButton({ songId }: { songId: string }) {
       className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
       title={isFav ? "Remove from favorites" : "Add to favorites"}
     >
-      {isFav ? "❤️ Favorited" : "🤍 Favorite"}
+      {isFav ? <><span className="text-red-400">♥</span> Favorited</> : <><span className="text-slate-400">♡</span> Favorite</>}
     </button>
   );
 }

@@ -1,12 +1,31 @@
 {
   "name": "Telugu Lyrics Vault",
   "short_name": "Lyrics Vault",
-  "description": "Personal Telugu Lyrics Vault",
+  "description": "Browse, search, and manage your personal collection of Telugu song lyrics",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#7c3aed",
+  "theme_color": "#0284c7",
   "orientation": "portrait",
+  "id": "/",
+  "scope": "/",
+  "categories": ["entertainment", "music"],
+  "screenshots": [
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Telugu Lyrics Vault"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Telugu Lyrics Vault"
+    }
+  ],
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -19,6 +38,18 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

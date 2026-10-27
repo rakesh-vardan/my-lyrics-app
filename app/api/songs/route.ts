@@ -1,14 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSong, getAllSongsMeta } from "@/lib/db";
+import { createSong, isSongSort, listSongs } from "@/lib/db";
 import { isAuthenticated } from "@/lib/auth";
 import { parseSongInput } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-/** Public: the whole library's metadata (never includes lyrics). */
-export async function GET() {
+function intParam(value: string | null, fallback: number): number {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+/**
+ * Public: one page of the library's metadata (never lyrics), filtered and
+ * sorted server-side. Returns `{ songs, total }` so the client can paginate.
+ */
+export async function GET(req: NextRequest) {
+  const p = req.nextUrl.searchParams;
+
+  const rawSort = p.get("sort");
+  const sort = isSongSort(rawSort) ? rawSort : "recent";
+  const idsParam = p.get("ids");
+
   try {
-    return NextResponse.json(await getAllSongsMeta());
+    const { songs, total } = await listSongs({
+      ids: idsParam ? idsParam.split(",").filter(Boolean) : undefined,
+      genre: p.get("genre") ?? undefined,
+      movie: p.get("movie") ?? undefined,
+      tag: p.get("tag") ?? undefined,
+      letter: p.get("letter") ?? undefined,
+      sort,
+      limit: intParam(p.get("limit"), 20),
+      offset: intParam(p.get("offset"), 0),
+    });
+
+    return NextResponse.json({ songs, total });
   } catch (error) {
     console.error("GET /api/songs failed", error);
     return NextResponse.json({ error: "Failed to load songs." }, { status: 500 });
