@@ -10,6 +10,15 @@ import RightsNotice from "@/components/RightsNotice";
 export const metadata: Metadata = {
   title: "Telugu Lyrics Vault",
   description: "Personal Telugu Lyrics Vault",
+  // Personal archive that reproduces copyrighted lyrics: ask search engines to
+  // drop it. Anyone with the link can still read it. This is a robots *meta*
+  // tag rather than a robots.txt Disallow, because a blocked page can't be
+  // fetched, so Google never sees the noindex and may still list the bare URL.
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+  },
   manifest: "/manifest.json",
   icons: {
     icon: [
