@@ -6,6 +6,7 @@ import LyricsControls from "@/components/LyricsControls";
 import RecentlyViewedTracker from "@/components/RecentlyViewedTracker";
 import MediaEmbed from "@/components/MediaEmbed";
 import SwipeNavigator from "@/components/SwipeNavigator";
+import RightsNotice from "@/components/RightsNotice";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -119,6 +120,8 @@ export default async function SongPage({ params }: PageProps) {
         <LyricsControls lyrics={song.lyrics} title={song.title_telugu} />
 
         {song.media_url && <MediaEmbed url={song.media_url} />}
+
+        <RightsNotice className="mt-6 pt-4 border-t border-slate-700" />
       </div>
 
       <SwipeNavigator prevId={prevId} nextId={nextId} />

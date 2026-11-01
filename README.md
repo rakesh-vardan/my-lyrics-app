@@ -213,8 +213,32 @@ npm run backup                        # → data/songs.json
 npm run import -- data/songs.json     # restore into any empty Postgres
 ```
 
-Run `npm run backup` after a batch of edits and commit the file. The lyrics live in git, so any
-database — Neon, Supabase, local Postgres — is disposable.
+`data/` is **gitignored on purpose**. The export is a full copy of the vault, including
+lyrics whose rights belong to their publishers, and this repository is public — so the
+backup stays on your machine and never gets committed. Point it at a drive you also back
+up (Time Machine, external disk, or a private cloud folder).
+
+Run it after a batch of edits. Any database — Neon, another Postgres, a local one — is
+disposable as long as that file exists.
+
+`npm run import` upserts by **id**, so importing a stale export overwrites live rows with
+older text. Keep a copy of the previous file before restoring.
+
+## Rights and licensing
+
+Song lyrics are copyrighted works. This project is a personal, non-commercial archive: it
+claims no ownership of the text or credits, sells nothing, and removes content on request.
+The notice rendered on each song page and in the footer says exactly that.
+
+Set `NEXT_PUBLIC_CONTACT_EMAIL` so the notice carries a working takedown address. Without
+it the sentence still renders, but there is no way for a rights holder to reach you.
+
+Two deliberate omissions:
+
+- The notice does not claim "fair use" / "fair dealing". That defence has specific
+  requirements this site does not meet, and asserting it looks worse than staying silent.
+- Lyrics are not committed to git. The database and your local `data/` export are the only
+  places they live.
 
 ## Deployment
 

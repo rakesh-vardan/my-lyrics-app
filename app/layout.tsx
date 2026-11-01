@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+import RightsNotice from "@/components/RightsNotice";
 
 export const metadata: Metadata = {
   title: "Telugu Lyrics Vault",
@@ -88,8 +89,9 @@ export default function RootLayout({
               ♪ Telugu Lyrics Vault &middot; Made with <span className="text-red-400">♥</span>  for Telugu lyrics &amp; music
             </p>
             <p className="text-center text-xs text-slate-700 mt-1">
-              &copy; {new Date().getFullYear()} &middot; Built with Next.js &amp; Supabase
+              &copy; {new Date().getFullYear()} &middot; Built with Next.js &amp; Neon
             </p>
+            <RightsNotice variant="short" className="mt-3" />
           </div>
         </footer>
         <Toaster position="bottom-center" richColors closeButton />

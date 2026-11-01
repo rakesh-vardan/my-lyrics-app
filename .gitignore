@@ -48,3 +48,7 @@ next-env.d.ts
 public/sw.js
 public/swe-worker-*.js
 .neon
+
+# Local database exports. `npm run backup` writes here; the contents are a copy
+# of the vault and are deliberately never committed — this repo is public.
+/data
