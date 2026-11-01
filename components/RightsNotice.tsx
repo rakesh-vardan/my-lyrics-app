@@ -14,7 +14,7 @@ const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim();
 
 function Contact() {
   if (!CONTACT_EMAIL) {
-    return <>contact the site owner</>;
+    return <>the site owner</>;
   }
   return (
     <a href={`mailto:${CONTACT_EMAIL}`} className="text-sky-500 hover:text-sky-400 underline">
@@ -44,7 +44,7 @@ export default function RightsNotice({
       Lyrics and song credits remain the property of their respective rights holders — lyricists,
       composers, performers and publishers. They are reproduced here for personal, non-commercial
       reference only, and no ownership is claimed. If you are a rights holder and would like this
-      song removed, <Contact /> and it will be taken down promptly.
+      song removed, please contact <Contact /> and it will be taken down promptly.
     </p>
   );
 }
